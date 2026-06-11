@@ -1,0 +1,199 @@
+{
+  "nodes": [
+    {
+      "node_id": "故宫",
+      "title": "故宫",
+      "node_type": "attraction",
+      "city": "北京",
+      "aliases": [
+        "故宫博物院"
+      ],
+      "tags": [
+        "culture",
+        "history",
+        "classic"
+      ],
+      "metadata": {
+        "cluster_members": [
+          "景山公园",
+          "东城中轴"
+        ],
+        "alternatives": [
+          "国家博物馆",
+          "天坛",
+          "雍和宫"
+        ],
+        "source_path": "/home/obiah/Desktop/smart-trip/backend/data/knowledge_graph/obsidian_vault/北京/故宫.md"
+      }
+    },
+    {
+      "node_id": "西湖",
+      "title": "西湖",
+      "node_type": "attraction",
+      "city": "杭州",
+      "aliases": [
+        "西湖景区"
+      ],
+      "tags": [
+        "nature",
+        "lakeview",
+        "classic"
+      ],
+      "metadata": {
+        "cluster_members": [
+          "白堤孤山",
+          "苏堤",
+          "断桥",
+          "花港观鱼",
+          "西湖核心区",
+          "西湖西线",
+          "西湖东线",
+          "西湖沿岸"
+        ],
+        "alternatives": [
+          "西溪湿地",
+          "九溪烟树",
+          "湘湖"
+        ],
+        "source_path": "/home/obiah/Desktop/smart-trip/backend/data/knowledge_graph/obsidian_vault/杭州/西湖.md"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source_id": "故宫",
+      "target_id": "故宫博物院",
+      "edge_type": "alias"
+    },
+    {
+      "source_id": "故宫",
+      "target_id": "景山公园",
+      "edge_type": "cluster_member"
+    },
+    {
+      "source_id": "故宫",
+      "target_id": "东城中轴",
+      "edge_type": "cluster_member"
+    },
+    {
+      "source_id": "故宫",
+      "target_id": "国家博物馆",
+      "edge_type": "alternative"
+    },
+    {
+      "source_id": "故宫",
+      "target_id": "天坛",
+      "edge_type": "alternative"
+    },
+    {
+      "source_id": "故宫",
+      "target_id": "雍和宫",
+      "edge_type": "alternative"
+    },
+    {
+      "source_id": "故宫",
+      "target_id": "景山公园",
+      "edge_type": "wikilink"
+    },
+    {
+      "source_id": "故宫",
+      "target_id": "东城中轴",
+      "edge_type": "wikilink"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "西湖景区",
+      "edge_type": "alias"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "白堤孤山",
+      "edge_type": "cluster_member"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "苏堤",
+      "edge_type": "cluster_member"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "断桥",
+      "edge_type": "cluster_member"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "花港观鱼",
+      "edge_type": "cluster_member"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "西湖核心区",
+      "edge_type": "cluster_member"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "西湖西线",
+      "edge_type": "cluster_member"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "西湖东线",
+      "edge_type": "cluster_member"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "西湖沿岸",
+      "edge_type": "cluster_member"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "西溪湿地",
+      "edge_type": "alternative"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "九溪烟树",
+      "edge_type": "alternative"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "湘湖",
+      "edge_type": "alternative"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "白堤孤山",
+      "edge_type": "wikilink"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "苏堤",
+      "edge_type": "wikilink"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "断桥",
+      "edge_type": "wikilink"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "花港观鱼",
+      "edge_type": "wikilink"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "西溪湿地",
+      "edge_type": "wikilink"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "九溪烟树",
+      "edge_type": "wikilink"
+    },
+    {
+      "source_id": "西湖",
+      "target_id": "湘湖",
+      "edge_type": "wikilink"
+    }
+  ]
+}

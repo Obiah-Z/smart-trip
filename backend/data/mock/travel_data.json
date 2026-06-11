@@ -1,0 +1,3310 @@
+{
+  "weather": {
+    "北京": {
+      "summary": "晴到多云，20-31℃，早晚温差明显",
+      "advice": "建议准备防晒用品和轻薄外套，历史景点步行较多时注意补水"
+    },
+    "杭州": {
+      "summary": "多云，22-28℃，适合步行和轻量户外活动",
+      "advice": "建议准备轻薄外套和舒适步行鞋，湖边与山线行程可适当预留休息"
+    },
+    "成都": {
+      "summary": "阴天，20-26℃，体感舒适",
+      "advice": "适合城市漫步和夜间美食行程，早晚可带薄外套"
+    },
+    "上海": {
+      "summary": "晴转多云，21-27℃",
+      "advice": "适合城市观光与夜景体验，江边夜间风感会稍强"
+    },
+    "西安": {
+      "summary": "晴间多云，18-30℃，午后偏热",
+      "advice": "白天参观遗址和城墙时注意防晒，晚上可安排老城夜游"
+    },
+    "重庆": {
+      "summary": "多云转阵雨，23-31℃，湿度较高",
+      "advice": "建议随身带伞，山城步道较多，鞋子尽量防滑"
+    },
+    "苏州": {
+      "summary": "阴转多云，21-27℃，体感温和",
+      "advice": "适合园林和古城慢游，临水区域早晚略凉"
+    },
+    "广州": {
+      "summary": "阵雨转多云，26-33℃，闷热明显",
+      "advice": "建议穿轻薄衣物并备好雨具，尽量避开正午长时间暴晒"
+    },
+    "厦门": {
+      "summary": "多云，25-31℃，海风明显",
+      "advice": "适合海边散步和岛内 citywalk，注意防晒和补水"
+    },
+    "南京": {
+      "summary": "晴转阴，22-30℃，午后略热",
+      "advice": "适合博物馆和历史街区行程，中午可安排室内休息"
+    },
+    "深圳": {
+      "summary": "多云，27-32℃，海风明显",
+      "advice": "适合海边散步和城市步行，建议防晒并备好轻薄换洗衣物"
+    },
+    "青岛": {
+      "summary": "晴转多云，21-27℃，海边风较大",
+      "advice": "适合海岸线 citywalk，建议带薄外套并注意海风带来的体感温差"
+    },
+    "长沙": {
+      "summary": "多云转晴，25-33℃，午后偏热",
+      "advice": "白天建议减少暴晒时段，夜间更适合安排 citywalk 与夜宵行程"
+    },
+    "武汉": {
+      "summary": "多云，24-31℃，体感略闷",
+      "advice": "适合早晚步行和江边活动，中午更适合博物馆或室内休息"
+    },
+    "昆明": {
+      "summary": "晴间多云，18-25℃，早晚偏凉",
+      "advice": "整体适合慢游和步行，建议准备薄外套并注意高原紫外线"
+    },
+    "三亚": {
+      "summary": "多云到晴，27-32℃，海边紫外线强",
+      "advice": "适合海边度假和傍晚散步，建议避开正午暴晒并做好防晒补水"
+    },
+    "哈尔滨": {
+      "summary": "晴到多云，11-23℃，早晚偏凉",
+      "advice": "昼夜温差明显，建议准备外套；冬季出行需额外关注防寒与室内外温差"
+    },
+    "桂林": {
+      "summary": "阵雨转多云，23-29℃，空气湿润",
+      "advice": "适合山水慢游，遇到阵雨时建议优先选择室内或短途活动并备好雨具"
+    },
+    "天津": {
+      "summary": "晴转多云，22-30℃，夜间风感较明显",
+      "advice": "适合建筑 citywalk 与夜景路线，海河沿线晚上建议加一件薄外套"
+    },
+    "洛阳": {
+      "summary": "晴间多云，20-31℃，午后偏热",
+      "advice": "适合古迹和夜游路线，白天参观石窟和遗址时注意防晒补水"
+    }
+  },
+  "hotels": {
+    "北京": [
+      {
+        "name": "东直门静舍酒店",
+        "area": "东直门",
+        "pricePerNight": 480,
+        "quiet": true,
+        "rating": 4.6,
+        "comfortScore": 78,
+        "tags": [
+          "quiet_hotel",
+          "metro_access",
+          "balanced"
+        ]
+      },
+      {
+        "name": "前门行旅酒店",
+        "area": "前门",
+        "pricePerNight": 420,
+        "quiet": false,
+        "rating": 4.5,
+        "comfortScore": 70,
+        "tags": [
+          "lively_hotel",
+          "classic",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "国贸云栖酒店",
+        "area": "国贸",
+        "pricePerNight": 720,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 88,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "design_hotel"
+        ]
+      },
+      {
+        "name": "后海胡同行馆",
+        "area": "什刹海",
+        "pricePerNight": 660,
+        "quiet": false,
+        "rating": 4.7,
+        "comfortScore": 84,
+        "tags": [
+          "design_hotel",
+          "citywalk",
+          "heritage"
+        ]
+      }
+    ],
+    "杭州": [
+      {
+        "name": "西湖雅舍酒店",
+        "area": "西湖东线",
+        "pricePerNight": 450,
+        "quiet": false,
+        "rating": 4.7,
+        "comfortScore": 78,
+        "tags": [
+          "design_hotel",
+          "lively_hotel",
+          "lakeview"
+        ]
+      },
+      {
+        "name": "西湖·栖岸隐庐酒店",
+        "area": "西湖沿岸",
+        "pricePerNight": 480,
+        "quiet": true,
+        "rating": 4.9,
+        "comfortScore": 92,
+        "tags": [
+          "quiet_hotel",
+          "comfortable_hotel",
+          "lakeview",
+          "family_friendly"
+        ]
+      },
+      {
+        "name": "武林静居酒店",
+        "area": "武林广场",
+        "pricePerNight": 360,
+        "quiet": true,
+        "rating": 4.6,
+        "comfortScore": 74,
+        "tags": [
+          "quiet_hotel",
+          "budget_friendly",
+          "metro_access"
+        ]
+      },
+      {
+        "name": "湖滨观景酒店",
+        "area": "湖滨商圈",
+        "pricePerNight": 760,
+        "quiet": true,
+        "rating": 4.9,
+        "comfortScore": 94,
+        "tags": [
+          "comfortable_hotel",
+          "lakeview",
+          "design_hotel"
+        ]
+      },
+      {
+        "name": "龙井山舍度假酒店",
+        "area": "龙井九溪",
+        "pricePerNight": 820,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 93,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "resort"
+        ]
+      },
+      {
+        "name": "湖滨潮玩酒店",
+        "area": "湖滨商圈",
+        "pricePerNight": 530,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 80,
+        "tags": [
+          "lively_hotel",
+          "design_hotel",
+          "citywalk"
+        ]
+      }
+    ],
+    "成都": [
+      {
+        "name": "宽窄慢居",
+        "area": "宽窄巷子",
+        "pricePerNight": 320,
+        "quiet": true,
+        "rating": 4.5,
+        "comfortScore": 72,
+        "tags": [
+          "quiet_hotel",
+          "budget_friendly",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "春熙精选酒店",
+        "area": "春熙路",
+        "pricePerNight": 410,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 75,
+        "tags": [
+          "lively_hotel",
+          "food",
+          "metro_access"
+        ]
+      },
+      {
+        "name": "太古里泊心酒店",
+        "area": "太古里",
+        "pricePerNight": 780,
+        "quiet": false,
+        "rating": 4.8,
+        "comfortScore": 90,
+        "tags": [
+          "comfortable_hotel",
+          "design_hotel",
+          "lively_hotel"
+        ]
+      },
+      {
+        "name": "文殊院竹隐酒店",
+        "area": "文殊院",
+        "pricePerNight": 540,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 82,
+        "tags": [
+          "quiet_hotel",
+          "culture",
+          "comfortable_hotel",
+          "family_friendly"
+        ]
+      }
+    ],
+    "上海": [
+      {
+        "name": "静安城市酒店",
+        "area": "静安寺",
+        "pricePerNight": 520,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 81,
+        "tags": [
+          "quiet_hotel",
+          "metro_access",
+          "comfortable_hotel",
+          "family_friendly"
+        ]
+      },
+      {
+        "name": "外滩夜色酒店",
+        "area": "外滩",
+        "pricePerNight": 880,
+        "quiet": false,
+        "rating": 4.8,
+        "comfortScore": 91,
+        "tags": [
+          "lively_hotel",
+          "riverfront",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "武康路设计酒店",
+        "area": "武康路",
+        "pricePerNight": 690,
+        "quiet": false,
+        "rating": 4.7,
+        "comfortScore": 86,
+        "tags": [
+          "design_hotel",
+          "citywalk",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "北外滩江景居",
+        "area": "北外滩",
+        "pricePerNight": 760,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 90,
+        "tags": [
+          "riverfront",
+          "quiet_hotel",
+          "comfortable_hotel",
+          "family_friendly"
+        ]
+      }
+    ],
+    "西安": [
+      {
+        "name": "钟楼雅宿酒店",
+        "area": "钟楼",
+        "pricePerNight": 360,
+        "quiet": false,
+        "rating": 4.5,
+        "comfortScore": 71,
+        "tags": [
+          "lively_hotel",
+          "citywalk",
+          "budget_friendly"
+        ]
+      },
+      {
+        "name": "曲江静享酒店",
+        "area": "曲江新区",
+        "pricePerNight": 520,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 80,
+        "tags": [
+          "quiet_hotel",
+          "balanced",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "大唐舒居酒店",
+        "area": "大雁塔",
+        "pricePerNight": 760,
+        "quiet": true,
+        "rating": 4.9,
+        "comfortScore": 92,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "culture"
+        ]
+      },
+      {
+        "name": "城墙景观夜泊酒店",
+        "area": "南门城墙",
+        "pricePerNight": 620,
+        "quiet": false,
+        "rating": 4.7,
+        "comfortScore": 84,
+        "tags": [
+          "heritage",
+          "citywalk",
+          "design_hotel"
+        ]
+      }
+    ],
+    "重庆": [
+      {
+        "name": "解放碑云端酒店",
+        "area": "解放碑",
+        "pricePerNight": 430,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 74,
+        "tags": [
+          "lively_hotel",
+          "citywalk",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "南滨安睡酒店",
+        "area": "南滨路",
+        "pricePerNight": 510,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 80,
+        "tags": [
+          "quiet_hotel",
+          "riverfront",
+          "balanced"
+        ]
+      },
+      {
+        "name": "观音桥活力酒店",
+        "area": "观音桥",
+        "pricePerNight": 680,
+        "quiet": false,
+        "rating": 4.8,
+        "comfortScore": 87,
+        "tags": [
+          "lively_hotel",
+          "comfortable_hotel",
+          "design_hotel"
+        ]
+      },
+      {
+        "name": "南山观景酒店",
+        "area": "南山",
+        "pricePerNight": 720,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 90,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "cityview"
+        ]
+      }
+    ],
+    "苏州": [
+      {
+        "name": "平江河畔客舍",
+        "area": "平江路",
+        "pricePerNight": 380,
+        "quiet": false,
+        "rating": 4.5,
+        "comfortScore": 71,
+        "tags": [
+          "heritage",
+          "citywalk",
+          "lively_hotel"
+        ]
+      },
+      {
+        "name": "金鸡湖静雅酒店",
+        "area": "金鸡湖",
+        "pricePerNight": 560,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 84,
+        "tags": [
+          "quiet_hotel",
+          "lakeview",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "拙政园雅致酒店",
+        "area": "拙政园",
+        "pricePerNight": 720,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 88,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "heritage"
+        ]
+      },
+      {
+        "name": "十全街园居",
+        "area": "十全街",
+        "pricePerNight": 450,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 76,
+        "tags": [
+          "food",
+          "citywalk",
+          "design_hotel"
+        ]
+      }
+    ],
+    "广州": [
+      {
+        "name": "天河轻旅酒店",
+        "area": "天河路商圈",
+        "pricePerNight": 420,
+        "quiet": false,
+        "rating": 4.5,
+        "comfortScore": 72,
+        "tags": [
+          "lively_hotel",
+          "metro_access",
+          "budget_friendly"
+        ]
+      },
+      {
+        "name": "珠江新城舒居",
+        "area": "珠江新城",
+        "pricePerNight": 690,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 87,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "riverfront",
+          "family_friendly"
+        ]
+      },
+      {
+        "name": "北京路活力酒店",
+        "area": "北京路步行街",
+        "pricePerNight": 470,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 75,
+        "tags": [
+          "lively_hotel",
+          "food",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "沙面花园酒店",
+        "area": "沙面",
+        "pricePerNight": 620,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 83,
+        "tags": [
+          "quiet_hotel",
+          "heritage",
+          "comfortable_hotel"
+        ]
+      }
+    ],
+    "厦门": [
+      {
+        "name": "环岛路海风酒店",
+        "area": "环岛路",
+        "pricePerNight": 520,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 82,
+        "tags": [
+          "quiet_hotel",
+          "sea_view",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "中山路夜色酒店",
+        "area": "中山路步行街",
+        "pricePerNight": 460,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 75,
+        "tags": [
+          "lively_hotel",
+          "food",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "沙坡尾设计客栈",
+        "area": "沙坡尾",
+        "pricePerNight": 620,
+        "quiet": false,
+        "rating": 4.8,
+        "comfortScore": 86,
+        "tags": [
+          "design_hotel",
+          "citywalk",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "曾厝垵海景酒店",
+        "area": "曾厝垵",
+        "pricePerNight": 680,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 85,
+        "tags": [
+          "sea_view",
+          "quiet_hotel",
+          "comfortable_hotel"
+        ]
+      }
+    ],
+    "南京": [
+      {
+        "name": "新街口都会酒店",
+        "area": "新街口",
+        "pricePerNight": 460,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 74,
+        "tags": [
+          "lively_hotel",
+          "metro_access",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "玄武静享酒店",
+        "area": "玄武湖",
+        "pricePerNight": 550,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 81,
+        "tags": [
+          "quiet_hotel",
+          "lakeview",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "夫子庙夜泊酒店",
+        "area": "夫子庙",
+        "pricePerNight": 640,
+        "quiet": false,
+        "rating": 4.8,
+        "comfortScore": 86,
+        "tags": [
+          "lively_hotel",
+          "heritage",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "钟山书香酒店",
+        "area": "钟山",
+        "pricePerNight": 720,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 89,
+        "tags": [
+          "quiet_hotel",
+          "comfortable_hotel",
+          "culture"
+        ]
+      }
+    ],
+    "深圳": [
+      {
+        "name": "福田云尚酒店",
+        "area": "福田中心区",
+        "pricePerNight": 620,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 88,
+        "tags": [
+          "quiet_hotel",
+          "comfortable_hotel",
+          "metro_access"
+        ]
+      },
+      {
+        "name": "南头古城行旅",
+        "area": "南头古城",
+        "pricePerNight": 480,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 77,
+        "tags": [
+          "lively_hotel",
+          "citywalk",
+          "design_hotel"
+        ]
+      },
+      {
+        "name": "深圳湾栖海酒店",
+        "area": "深圳湾",
+        "pricePerNight": 880,
+        "quiet": true,
+        "rating": 4.9,
+        "comfortScore": 94,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "sea_view",
+          "family_friendly"
+        ]
+      },
+      {
+        "name": "盐田海景度假酒店",
+        "area": "盐田",
+        "pricePerNight": 720,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 86,
+        "tags": [
+          "sea_view",
+          "quiet_hotel",
+          "resort"
+        ]
+      }
+    ],
+    "青岛": [
+      {
+        "name": "小麦岛观海酒店",
+        "area": "小麦岛",
+        "pricePerNight": 560,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 85,
+        "tags": [
+          "quiet_hotel",
+          "sea_view",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "台东夜色酒店",
+        "area": "台东",
+        "pricePerNight": 420,
+        "quiet": false,
+        "rating": 4.5,
+        "comfortScore": 72,
+        "tags": [
+          "lively_hotel",
+          "food",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "八大关花园酒店",
+        "area": "八大关",
+        "pricePerNight": 760,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 90,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "heritage"
+        ]
+      },
+      {
+        "name": "栈桥老城行馆",
+        "area": "市南老城",
+        "pricePerNight": 490,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 76,
+        "tags": [
+          "citywalk",
+          "heritage",
+          "design_hotel"
+        ]
+      }
+    ],
+    "长沙": [
+      {
+        "name": "五一广场潮玩酒店",
+        "area": "五一广场",
+        "pricePerNight": 430,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 74,
+        "tags": [
+          "lively_hotel",
+          "citywalk",
+          "metro_access"
+        ]
+      },
+      {
+        "name": "梅溪湖静享酒店",
+        "area": "梅溪湖",
+        "pricePerNight": 620,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 86,
+        "tags": [
+          "quiet_hotel",
+          "lakeview",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "湘江景观酒店",
+        "area": "湘江沿岸",
+        "pricePerNight": 710,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 88,
+        "tags": [
+          "comfortable_hotel",
+          "riverfront",
+          "quiet_hotel"
+        ]
+      },
+      {
+        "name": "太平街行旅酒店",
+        "area": "太平街",
+        "pricePerNight": 390,
+        "quiet": false,
+        "rating": 4.5,
+        "comfortScore": 70,
+        "tags": [
+          "food",
+          "citywalk",
+          "lively_hotel"
+        ]
+      }
+    ],
+    "武汉": [
+      {
+        "name": "东湖湖景酒店",
+        "area": "东湖",
+        "pricePerNight": 660,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 87,
+        "tags": [
+          "quiet_hotel",
+          "lakeview",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "江汉路都会酒店",
+        "area": "江汉路",
+        "pricePerNight": 470,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 75,
+        "tags": [
+          "lively_hotel",
+          "citywalk",
+          "metro_access"
+        ]
+      },
+      {
+        "name": "武昌书香酒店",
+        "area": "武昌核心区",
+        "pricePerNight": 590,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 82,
+        "tags": [
+          "quiet_hotel",
+          "culture",
+          "balanced"
+        ]
+      },
+      {
+        "name": "黎黄陂路设计酒店",
+        "area": "黎黄陂路",
+        "pricePerNight": 630,
+        "quiet": false,
+        "rating": 4.7,
+        "comfortScore": 84,
+        "tags": [
+          "design_hotel",
+          "citywalk",
+          "comfortable_hotel"
+        ]
+      }
+    ],
+    "昆明": [
+      {
+        "name": "翠湖静居酒店",
+        "area": "翠湖",
+        "pricePerNight": 460,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 80,
+        "tags": [
+          "quiet_hotel",
+          "citywalk",
+          "balanced"
+        ]
+      },
+      {
+        "name": "滇池度假酒店",
+        "area": "滇池",
+        "pricePerNight": 720,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 90,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "resort"
+        ]
+      },
+      {
+        "name": "南屏街轻旅酒店",
+        "area": "南屏街",
+        "pricePerNight": 380,
+        "quiet": false,
+        "rating": 4.5,
+        "comfortScore": 71,
+        "tags": [
+          "lively_hotel",
+          "food",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "文林街花园酒店",
+        "area": "文林街",
+        "pricePerNight": 540,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 83,
+        "tags": [
+          "quiet_hotel",
+          "design_hotel",
+          "comfortable_hotel"
+        ]
+      }
+    ],
+    "三亚": [
+      {
+        "name": "亚龙湾亲海度假酒店",
+        "area": "亚龙湾",
+        "pricePerNight": 980,
+        "quiet": true,
+        "rating": 4.9,
+        "comfortScore": 95,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "sea_view",
+          "family_friendly",
+          "resort"
+        ]
+      },
+      {
+        "name": "海棠湾栖海酒店",
+        "area": "海棠湾",
+        "pricePerNight": 860,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 92,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "family_friendly",
+          "resort"
+        ]
+      },
+      {
+        "name": "大东海夜色酒店",
+        "area": "大东海",
+        "pricePerNight": 560,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 78,
+        "tags": [
+          "lively_hotel",
+          "citywalk",
+          "sea_view"
+        ]
+      },
+      {
+        "name": "三亚湾椰林酒店",
+        "area": "三亚湾",
+        "pricePerNight": 620,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 84,
+        "tags": [
+          "quiet_hotel",
+          "sea_view",
+          "family_friendly"
+        ]
+      },
+      {
+        "name": "海棠轻奢设计酒店",
+        "area": "海棠湾",
+        "pricePerNight": 740,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 89,
+        "tags": [
+          "comfortable_hotel",
+          "design_hotel",
+          "quiet_hotel"
+        ]
+      }
+    ],
+    "哈尔滨": [
+      {
+        "name": "中央大街书香酒店",
+        "area": "中央大街外圈",
+        "pricePerNight": 520,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 82,
+        "tags": [
+          "quiet_hotel",
+          "citywalk",
+          "balanced"
+        ]
+      },
+      {
+        "name": "松北冰雪景观酒店",
+        "area": "松北",
+        "pricePerNight": 760,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 88,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "family_friendly"
+        ]
+      },
+      {
+        "name": "索菲亚夜景酒店",
+        "area": "道里",
+        "pricePerNight": 610,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 79,
+        "tags": [
+          "lively_hotel",
+          "heritage",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "太阳岛亲子度假酒店",
+        "area": "太阳岛",
+        "pricePerNight": 840,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 91,
+        "tags": [
+          "resort",
+          "family_friendly",
+          "quiet_hotel",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "松花江畔观景酒店",
+        "area": "松花江沿岸",
+        "pricePerNight": 690,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 85,
+        "tags": [
+          "riverfront",
+          "comfortable_hotel",
+          "quiet_hotel"
+        ]
+      }
+    ],
+    "桂林": [
+      {
+        "name": "两江四湖静舍酒店",
+        "area": "两江四湖",
+        "pricePerNight": 520,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 81,
+        "tags": [
+          "quiet_hotel",
+          "citywalk",
+          "balanced"
+        ]
+      },
+      {
+        "name": "阳朔山景度假酒店",
+        "area": "阳朔外圈",
+        "pricePerNight": 780,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 90,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "resort",
+          "family_friendly"
+        ]
+      },
+      {
+        "name": "正阳街轻旅酒店",
+        "area": "正阳步行街",
+        "pricePerNight": 420,
+        "quiet": false,
+        "rating": 4.5,
+        "comfortScore": 73,
+        "tags": [
+          "lively_hotel",
+          "food",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "遇龙河栖岸酒店",
+        "area": "阳朔遇龙河",
+        "pricePerNight": 860,
+        "quiet": true,
+        "rating": 4.9,
+        "comfortScore": 93,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "family_friendly",
+          "lakeview"
+        ]
+      },
+      {
+        "name": "象鼻山园景酒店",
+        "area": "象鼻山片区",
+        "pricePerNight": 610,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 84,
+        "tags": [
+          "quiet_hotel",
+          "design_hotel",
+          "comfortable_hotel"
+        ]
+      }
+    ],
+    "天津": [
+      {
+        "name": "五大道花园酒店",
+        "area": "五大道外圈",
+        "pricePerNight": 620,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 86,
+        "tags": [
+          "quiet_hotel",
+          "heritage",
+          "comfortable_hotel"
+        ]
+      },
+      {
+        "name": "海河景观酒店",
+        "area": "海河沿线",
+        "pricePerNight": 760,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 90,
+        "tags": [
+          "riverfront",
+          "comfortable_hotel",
+          "quiet_hotel",
+          "family_friendly"
+        ]
+      },
+      {
+        "name": "意风区行旅酒店",
+        "area": "意式风情区",
+        "pricePerNight": 490,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 76,
+        "tags": [
+          "citywalk",
+          "lively_hotel",
+          "design_hotel"
+        ]
+      },
+      {
+        "name": "小白楼都会酒店",
+        "area": "小白楼",
+        "pricePerNight": 580,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 82,
+        "tags": [
+          "quiet_hotel",
+          "metro_access",
+          "balanced"
+        ]
+      },
+      {
+        "name": "古文化街亲子酒店",
+        "area": "古文化街",
+        "pricePerNight": 540,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 79,
+        "tags": [
+          "family_friendly",
+          "food",
+          "lively_hotel"
+        ]
+      }
+    ],
+    "洛阳": [
+      {
+        "name": "龙门雅宿酒店",
+        "area": "龙门片区",
+        "pricePerNight": 560,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 82,
+        "tags": [
+          "quiet_hotel",
+          "culture",
+          "balanced"
+        ]
+      },
+      {
+        "name": "洛邑古城行馆",
+        "area": "老城外圈",
+        "pricePerNight": 480,
+        "quiet": false,
+        "rating": 4.6,
+        "comfortScore": 75,
+        "tags": [
+          "heritage",
+          "citywalk",
+          "lively_hotel"
+        ]
+      },
+      {
+        "name": "应天门书香酒店",
+        "area": "应天门",
+        "pricePerNight": 690,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 88,
+        "tags": [
+          "comfortable_hotel",
+          "quiet_hotel",
+          "culture"
+        ]
+      },
+      {
+        "name": "牡丹园亲子度假酒店",
+        "area": "洛龙区",
+        "pricePerNight": 720,
+        "quiet": true,
+        "rating": 4.8,
+        "comfortScore": 89,
+        "tags": [
+          "family_friendly",
+          "comfortable_hotel",
+          "quiet_hotel"
+        ]
+      },
+      {
+        "name": "白马寺静享酒店",
+        "area": "白马寺外圈",
+        "pricePerNight": 530,
+        "quiet": true,
+        "rating": 4.7,
+        "comfortScore": 80,
+        "tags": [
+          "quiet_hotel",
+          "design_hotel",
+          "balanced"
+        ]
+      }
+    ]
+  },
+  "attractions": {
+    "北京": [
+      {
+        "name": "故宫",
+        "type": "culture",
+        "cost": 60,
+        "area": "东城中轴",
+        "durationHours": 4,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "history",
+          "classic"
+        ]
+      },
+      {
+        "name": "景山公园",
+        "type": "nature",
+        "cost": 2,
+        "area": "东城中轴",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "cityview",
+          "classic"
+        ]
+      },
+      {
+        "name": "国家博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "天安门",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor",
+          "family"
+        ]
+      },
+      {
+        "name": "什刹海胡同",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "什刹海",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "culture",
+          "street"
+        ]
+      },
+      {
+        "name": "颐和园",
+        "type": "nature",
+        "cost": 30,
+        "area": "海淀西线",
+        "durationHours": 3.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "lakeview",
+          "garden"
+        ]
+      },
+      {
+        "name": "798艺术区",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "朝阳",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "tags": [
+          "citywalk",
+          "design",
+          "art"
+        ]
+      },
+      {
+        "name": "簋街",
+        "type": "food",
+        "cost": 0,
+        "area": "东直门",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "night_market",
+          "local_food"
+        ]
+      }
+    ],
+    "杭州": [
+      {
+        "name": "西湖",
+        "type": "nature",
+        "cost": 0,
+        "area": "西湖核心区",
+        "durationHours": 3,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "lakeview",
+          "citywalk",
+          "classic"
+        ]
+      },
+      {
+        "name": "白堤孤山",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "西湖核心区",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "lakeview",
+          "culture"
+        ]
+      },
+      {
+        "name": "灵隐寺",
+        "type": "culture",
+        "cost": 75,
+        "area": "灵隐片区",
+        "durationHours": 3,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "temple",
+          "mountain"
+        ]
+      },
+      {
+        "name": "法喜寺",
+        "type": "culture",
+        "cost": 10,
+        "area": "西湖西线",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "culture",
+          "temple",
+          "photo"
+        ]
+      },
+      {
+        "name": "九溪烟树",
+        "type": "nature",
+        "cost": 0,
+        "area": "龙井九溪",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "hiking",
+          "stream"
+        ]
+      },
+      {
+        "name": "龙井村",
+        "type": "relaxed",
+        "cost": 0,
+        "area": "龙井九溪",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "tea",
+          "culture",
+          "slow_travel"
+        ]
+      },
+      {
+        "name": "中国茶叶博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "龙井九溪",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "tea",
+          "culture",
+          "indoor"
+        ]
+      },
+      {
+        "name": "西溪湿地",
+        "type": "nature",
+        "cost": 80,
+        "area": "西溪",
+        "durationHours": 4,
+        "pace": "balanced",
+        "tags": [
+          "nature",
+          "wetland",
+          "boat",
+          "relaxed",
+          "family"
+        ]
+      },
+      {
+        "name": "河坊街",
+        "type": "food",
+        "cost": 0,
+        "area": "清河坊",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "street",
+          "night_market"
+        ]
+      },
+      {
+        "name": "南宋御街",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "清河坊",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "heritage",
+          "food"
+        ]
+      },
+      {
+        "name": "良渚博物院",
+        "type": "museum",
+        "cost": 0,
+        "area": "良渚",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      },
+      {
+        "name": "小河直街",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "运河",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "canal",
+          "food"
+        ]
+      },
+      {
+        "name": "湘湖",
+        "type": "nature",
+        "cost": 0,
+        "area": "湘湖",
+        "durationHours": 3,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "lakeview",
+          "slow_travel"
+        ]
+      }
+    ],
+    "成都": [
+      {
+        "name": "人民公园",
+        "type": "relaxed",
+        "cost": 0,
+        "area": "青羊中心区",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "relaxed",
+          "tea",
+          "park"
+        ]
+      },
+      {
+        "name": "宽窄巷子",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "宽窄巷子",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "culture",
+          "street"
+        ]
+      },
+      {
+        "name": "武侯祠",
+        "type": "culture",
+        "cost": 60,
+        "area": "武侯祠",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "history",
+          "classic"
+        ]
+      },
+      {
+        "name": "锦里",
+        "type": "food",
+        "cost": 0,
+        "area": "武侯祠",
+        "durationHours": 1.5,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "night_market"
+        ]
+      },
+      {
+        "name": "杜甫草堂",
+        "type": "culture",
+        "cost": 50,
+        "area": "浣花溪",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "culture",
+          "history",
+          "garden"
+        ]
+      },
+      {
+        "name": "东郊记忆",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "东郊",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "tags": [
+          "citywalk",
+          "design",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "成都大熊猫繁育研究基地",
+        "type": "nature",
+        "cost": 55,
+        "area": "熊猫基地",
+        "durationHours": 4,
+        "pace": "intensive",
+        "tags": [
+          "nature",
+          "family",
+          "classic"
+        ]
+      }
+    ],
+    "上海": [
+      {
+        "name": "外滩",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "黄浦江畔",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "citywalk",
+          "night_walk",
+          "classic"
+        ]
+      },
+      {
+        "name": "豫园",
+        "type": "culture",
+        "cost": 40,
+        "area": "老城厢",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "garden",
+          "heritage"
+        ]
+      },
+      {
+        "name": "上海博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "人民广场",
+        "durationHours": 2,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      },
+      {
+        "name": "武康路",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "徐汇衡复",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "street",
+          "design"
+        ]
+      },
+      {
+        "name": "徐汇滨江",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "徐汇滨江",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "riverfront",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "上海自然博物馆",
+        "type": "museum",
+        "cost": 30,
+        "area": "静安",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "indoor",
+          "family"
+        ]
+      },
+      {
+        "name": "田子坊",
+        "type": "food",
+        "cost": 0,
+        "area": "打浦桥",
+        "durationHours": 1.5,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "citywalk",
+          "design"
+        ]
+      }
+    ],
+    "西安": [
+      {
+        "name": "陕西历史博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "小寨曲江",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      },
+      {
+        "name": "大慈恩寺",
+        "type": "culture",
+        "cost": 40,
+        "area": "小寨曲江",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "temple",
+          "history"
+        ]
+      },
+      {
+        "name": "大雁塔北广场",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "小寨曲江",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "night_walk",
+          "classic"
+        ]
+      },
+      {
+        "name": "城墙",
+        "type": "culture",
+        "cost": 54,
+        "area": "城墙中轴",
+        "durationHours": 3,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "history",
+          "cityview"
+        ]
+      },
+      {
+        "name": "回民街",
+        "type": "food",
+        "cost": 0,
+        "area": "钟鼓楼",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "night_market"
+        ]
+      },
+      {
+        "name": "永兴坊",
+        "type": "food",
+        "cost": 0,
+        "area": "东门",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "street"
+        ]
+      },
+      {
+        "name": "曲江池遗址公园",
+        "type": "nature",
+        "cost": 0,
+        "area": "曲江",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "park",
+          "slow_travel"
+        ]
+      }
+    ],
+    "重庆": [
+      {
+        "name": "洪崖洞",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "解放碑",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "citywalk",
+          "night_walk",
+          "classic"
+        ]
+      },
+      {
+        "name": "山城步道",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "渝中",
+        "durationHours": 2.5,
+        "pace": "intensive",
+        "tags": [
+          "citywalk",
+          "hiking",
+          "classic"
+        ]
+      },
+      {
+        "name": "李子坝观景平台",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "渝中",
+        "durationHours": 1,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "photo",
+          "transit"
+        ]
+      },
+      {
+        "name": "鹅岭公园",
+        "type": "nature",
+        "cost": 0,
+        "area": "渝中",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "cityview",
+          "park"
+        ]
+      },
+      {
+        "name": "磁器口",
+        "type": "food",
+        "cost": 0,
+        "area": "沙坪坝",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "street"
+        ]
+      },
+      {
+        "name": "龙门浩老街",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "南滨路",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "food",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "三峡博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "人民广场",
+        "durationHours": 2,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      }
+    ],
+    "苏州": [
+      {
+        "name": "拙政园",
+        "type": "culture",
+        "cost": 80,
+        "area": "东北街区",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "garden",
+          "classic"
+        ]
+      },
+      {
+        "name": "苏州博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "东北街区",
+        "durationHours": 1.5,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "design",
+          "indoor"
+        ]
+      },
+      {
+        "name": "平江路",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "古城东线",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "canal",
+          "heritage"
+        ]
+      },
+      {
+        "name": "双塔市集",
+        "type": "food",
+        "cost": 0,
+        "area": "古城东线",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "food",
+          "citywalk",
+          "local_food"
+        ]
+      },
+      {
+        "name": "留园",
+        "type": "culture",
+        "cost": 55,
+        "area": "古城西线",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "culture",
+          "garden",
+          "heritage"
+        ]
+      },
+      {
+        "name": "山塘街",
+        "type": "food",
+        "cost": 0,
+        "area": "古城西线",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "street",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "金鸡湖",
+        "type": "nature",
+        "cost": 0,
+        "area": "园区",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "lakeview",
+          "citywalk",
+          "family"
+        ]
+      }
+    ],
+    "广州": [
+      {
+        "name": "陈家祠",
+        "type": "culture",
+        "cost": 10,
+        "area": "荔湾",
+        "durationHours": 1.5,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "heritage",
+          "classic"
+        ]
+      },
+      {
+        "name": "永庆坊",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "荔湾",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "culture",
+          "food"
+        ]
+      },
+      {
+        "name": "沙面",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "荔湾",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "street",
+          "history"
+        ]
+      },
+      {
+        "name": "广东省博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "珠江新城",
+        "durationHours": 2,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "indoor",
+          "history",
+          "family"
+        ]
+      },
+      {
+        "name": "北京路步行街",
+        "type": "food",
+        "cost": 0,
+        "area": "越秀",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "night_market"
+        ]
+      },
+      {
+        "name": "白云山",
+        "type": "nature",
+        "cost": 5,
+        "area": "白云",
+        "durationHours": 3,
+        "pace": "balanced",
+        "tags": [
+          "nature",
+          "hiking",
+          "cityview"
+        ]
+      },
+      {
+        "name": "珠江夜游码头",
+        "type": "citywalk",
+        "cost": 108,
+        "area": "珠江沿岸",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "night_walk",
+          "riverfront"
+        ]
+      }
+    ],
+    "厦门": [
+      {
+        "name": "鼓浪屿",
+        "type": "nature",
+        "cost": 35,
+        "area": "鼓浪屿",
+        "durationHours": 4,
+        "pace": "balanced",
+        "tags": [
+          "nature",
+          "island",
+          "classic"
+        ]
+      },
+      {
+        "name": "环岛路",
+        "type": "nature",
+        "cost": 0,
+        "area": "环岛南线",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "sea",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "沙坡尾",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "思明南线",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "design",
+          "street"
+        ]
+      },
+      {
+        "name": "厦门大学周边",
+        "type": "culture",
+        "cost": 0,
+        "area": "思明南线",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "culture",
+          "citywalk",
+          "campus"
+        ]
+      },
+      {
+        "name": "八市",
+        "type": "food",
+        "cost": 0,
+        "area": "开元",
+        "durationHours": 1.5,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "market"
+        ]
+      },
+      {
+        "name": "集美学村",
+        "type": "culture",
+        "cost": 0,
+        "area": "集美",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "citywalk",
+          "heritage"
+        ]
+      },
+      {
+        "name": "中山路步行街",
+        "type": "food",
+        "cost": 0,
+        "area": "中山路",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "night_market"
+        ]
+      }
+    ],
+    "南京": [
+      {
+        "name": "南京博物院",
+        "type": "museum",
+        "cost": 0,
+        "area": "中山东路",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      },
+      {
+        "name": "总统府",
+        "type": "culture",
+        "cost": 35,
+        "area": "长江路",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "history",
+          "classic"
+        ]
+      },
+      {
+        "name": "玄武湖",
+        "type": "nature",
+        "cost": 0,
+        "area": "玄武湖",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "lakeview",
+          "park"
+        ]
+      },
+      {
+        "name": "明孝陵",
+        "type": "culture",
+        "cost": 70,
+        "area": "钟山",
+        "durationHours": 3,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "history",
+          "nature"
+        ]
+      },
+      {
+        "name": "老门东",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "秦淮河",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "food",
+          "street"
+        ]
+      },
+      {
+        "name": "夫子庙",
+        "type": "culture",
+        "cost": 0,
+        "area": "秦淮河",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "heritage",
+          "classic"
+        ]
+      },
+      {
+        "name": "先锋书店五台山店",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "五台山",
+        "durationHours": 1,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "design",
+          "culture"
+        ]
+      }
+    ],
+    "深圳": [
+      {
+        "name": "南头古城",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "南山古城",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "culture",
+          "street"
+        ]
+      },
+      {
+        "name": "深圳湾公园",
+        "type": "nature",
+        "cost": 0,
+        "area": "深圳湾",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "sea",
+          "citywalk",
+          "family"
+        ]
+      },
+      {
+        "name": "华侨城创意园",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "华侨城",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "tags": [
+          "citywalk",
+          "design",
+          "art"
+        ]
+      },
+      {
+        "name": "人才公园",
+        "type": "nature",
+        "cost": 0,
+        "area": "深圳湾",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "cityview",
+          "park"
+        ]
+      },
+      {
+        "name": "海上世界文化艺术中心",
+        "type": "museum",
+        "cost": 0,
+        "area": "蛇口",
+        "durationHours": 2,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "art",
+          "indoor",
+          "family"
+        ]
+      },
+      {
+        "name": "东门老街",
+        "type": "food",
+        "cost": 0,
+        "area": "罗湖",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "night_market"
+        ]
+      },
+      {
+        "name": "盐田海滨栈道",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "盐田",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "sea",
+          "photo"
+        ]
+      }
+    ],
+    "青岛": [
+      {
+        "name": "栈桥",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "市南海岸",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "sea",
+          "classic"
+        ]
+      },
+      {
+        "name": "八大关",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "八大关",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "heritage",
+          "sea"
+        ]
+      },
+      {
+        "name": "小麦岛公园",
+        "type": "nature",
+        "cost": 0,
+        "area": "崂山南线",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "sea",
+          "photo"
+        ]
+      },
+      {
+        "name": "崂山",
+        "type": "nature",
+        "cost": 90,
+        "area": "崂山景区",
+        "durationHours": 4,
+        "pace": "intensive",
+        "tags": [
+          "nature",
+          "mountain",
+          "classic"
+        ]
+      },
+      {
+        "name": "大学路",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "老城文艺线",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "design",
+          "street"
+        ]
+      },
+      {
+        "name": "青岛啤酒博物馆",
+        "type": "museum",
+        "cost": 60,
+        "area": "台东",
+        "durationHours": 2,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      },
+      {
+        "name": "劈柴院",
+        "type": "food",
+        "cost": 0,
+        "area": "市南老城",
+        "durationHours": 1.5,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "street"
+        ]
+      }
+    ],
+    "长沙": [
+      {
+        "name": "岳麓山",
+        "type": "nature",
+        "cost": 0,
+        "area": "岳麓山",
+        "durationHours": 3,
+        "pace": "balanced",
+        "tags": [
+          "nature",
+          "hiking",
+          "classic"
+        ]
+      },
+      {
+        "name": "橘子洲",
+        "type": "nature",
+        "cost": 0,
+        "area": "湘江洲岛",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "cityview",
+          "classic"
+        ]
+      },
+      {
+        "name": "太平老街",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "老城核心",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "citywalk",
+          "food",
+          "street"
+        ]
+      },
+      {
+        "name": "湖南博物院",
+        "type": "museum",
+        "cost": 0,
+        "area": "开福",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      },
+      {
+        "name": "岳麓书院",
+        "type": "culture",
+        "cost": 50,
+        "area": "岳麓山",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "culture",
+          "history",
+          "classic"
+        ]
+      },
+      {
+        "name": "坡子街",
+        "type": "food",
+        "cost": 0,
+        "area": "五一广场",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "night_market"
+        ]
+      },
+      {
+        "name": "梅溪湖艺术中心",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "梅溪湖",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "design",
+          "lakeview"
+        ]
+      }
+    ],
+    "武汉": [
+      {
+        "name": "黄鹤楼",
+        "type": "culture",
+        "cost": 70,
+        "area": "武昌古城",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "history",
+          "classic"
+        ]
+      },
+      {
+        "name": "东湖绿道",
+        "type": "nature",
+        "cost": 0,
+        "area": "东湖",
+        "durationHours": 3,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "lakeview",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "湖北省博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "东湖",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      },
+      {
+        "name": "黎黄陂路",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "汉口历史区",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "heritage",
+          "street"
+        ]
+      },
+      {
+        "name": "江汉路步行街",
+        "type": "food",
+        "cost": 0,
+        "area": "江汉路",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "night_market"
+        ]
+      },
+      {
+        "name": "武汉大学周边",
+        "type": "culture",
+        "cost": 0,
+        "area": "珞珈山",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "culture",
+          "campus",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "江滩公园",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "长江沿岸",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "riverfront",
+          "night_walk"
+        ]
+      }
+    ],
+    "昆明": [
+      {
+        "name": "翠湖公园",
+        "type": "nature",
+        "cost": 0,
+        "area": "翠湖",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "park",
+          "citywalk"
+        ]
+      },
+      {
+        "name": "云南大学周边",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "翠湖文林线",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "culture",
+          "street"
+        ]
+      },
+      {
+        "name": "陆军讲武堂",
+        "type": "museum",
+        "cost": 0,
+        "area": "翠湖文林线",
+        "durationHours": 1.5,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      },
+      {
+        "name": "滇池海埂大坝",
+        "type": "nature",
+        "cost": 0,
+        "area": "滇池",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "lakeview",
+          "photo"
+        ]
+      },
+      {
+        "name": "斗南花市",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "斗南",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "citywalk",
+          "design",
+          "market"
+        ]
+      },
+      {
+        "name": "南屏街",
+        "type": "food",
+        "cost": 0,
+        "area": "南屏街",
+        "durationHours": 1.5,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "street"
+        ]
+      },
+      {
+        "name": "云南省博物馆",
+        "type": "culture",
+        "cost": 0,
+        "area": "官渡",
+        "durationHours": 2,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "culture",
+          "history",
+          "indoor"
+        ]
+      }
+    ],
+    "三亚": [
+      {
+        "name": "亚龙湾沙滩",
+        "type": "nature",
+        "cost": 0,
+        "area": "亚龙湾",
+        "durationHours": 3,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "sea",
+          "family",
+          "classic"
+        ]
+      },
+      {
+        "name": "海棠湾沙滩",
+        "type": "nature",
+        "cost": 0,
+        "area": "海棠湾",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "sea",
+          "family"
+        ]
+      },
+      {
+        "name": "鹿回头",
+        "type": "citywalk",
+        "cost": 42,
+        "area": "鹿回头",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "photo",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "椰梦长廊",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "三亚湾",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "sea",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "蜈支洲岛码头外线",
+        "type": "nature",
+        "cost": 0,
+        "area": "海棠湾",
+        "durationHours": 3.5,
+        "pace": "balanced",
+        "tags": [
+          "nature",
+          "sea",
+          "photo"
+        ]
+      },
+      {
+        "name": "三亚千古情园区",
+        "type": "culture",
+        "cost": 300,
+        "area": "迎宾路",
+        "durationHours": 3,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "family",
+          "show"
+        ]
+      },
+      {
+        "name": "第一市场",
+        "type": "food",
+        "cost": 0,
+        "area": "市区老城",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "night_market"
+        ]
+      },
+      {
+        "name": "亚特兰蒂斯水世界外圈",
+        "type": "museum",
+        "cost": 0,
+        "area": "海棠湾",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "indoor": true,
+        "tags": [
+          "family",
+          "indoor",
+          "design"
+        ]
+      }
+    ],
+    "哈尔滨": [
+      {
+        "name": "中央大街",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "道里核心区",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "heritage",
+          "classic"
+        ]
+      },
+      {
+        "name": "索菲亚教堂广场",
+        "type": "culture",
+        "cost": 20,
+        "area": "道里核心区",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "culture",
+          "history",
+          "classic"
+        ]
+      },
+      {
+        "name": "松花江边",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "松花江沿岸",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "riverfront",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "太阳岛",
+        "type": "nature",
+        "cost": 0,
+        "area": "太阳岛",
+        "durationHours": 3,
+        "pace": "balanced",
+        "tags": [
+          "nature",
+          "family",
+          "park"
+        ]
+      },
+      {
+        "name": "冰雪大世界外圈",
+        "type": "nature",
+        "cost": 0,
+        "area": "松北",
+        "durationHours": 3,
+        "pace": "intensive",
+        "tags": [
+          "nature",
+          "seasonal",
+          "classic"
+        ]
+      },
+      {
+        "name": "哈尔滨极地公园",
+        "type": "museum",
+        "cost": 180,
+        "area": "太阳岛",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "family",
+          "indoor",
+          "museum"
+        ]
+      },
+      {
+        "name": "马迭尔冷饮厅",
+        "type": "food",
+        "cost": 0,
+        "area": "中央大街",
+        "durationHours": 1,
+        "pace": "relaxed",
+        "tags": [
+          "food",
+          "local_food",
+          "snack"
+        ]
+      },
+      {
+        "name": "伏尔加庄园外景线",
+        "type": "nature",
+        "cost": 0,
+        "area": "香坊外圈",
+        "durationHours": 3.5,
+        "pace": "balanced",
+        "tags": [
+          "nature",
+          "photo",
+          "family"
+        ]
+      }
+    ],
+    "桂林": [
+      {
+        "name": "象鼻山",
+        "type": "nature",
+        "cost": 55,
+        "area": "市区核心",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "classic",
+          "family"
+        ]
+      },
+      {
+        "name": "两江四湖",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "市区核心",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "lakeview",
+          "classic"
+        ]
+      },
+      {
+        "name": "正阳步行街",
+        "type": "food",
+        "cost": 0,
+        "area": "市区核心",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "street"
+        ]
+      },
+      {
+        "name": "东西巷",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "老城片区",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "heritage",
+          "food"
+        ]
+      },
+      {
+        "name": "遇龙河轻舟段",
+        "type": "nature",
+        "cost": 0,
+        "area": "阳朔",
+        "durationHours": 3,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "riverfront",
+          "family"
+        ]
+      },
+      {
+        "name": "阳朔西街",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "阳朔",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "citywalk",
+          "night_walk",
+          "street"
+        ]
+      },
+      {
+        "name": "芦笛岩",
+        "type": "museum",
+        "cost": 90,
+        "area": "芦笛景区",
+        "durationHours": 2,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "indoor",
+          "family",
+          "nature"
+        ]
+      },
+      {
+        "name": "桂林博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "临桂",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      }
+    ],
+    "天津": [
+      {
+        "name": "五大道",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "五大道",
+        "durationHours": 2.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "heritage",
+          "classic"
+        ]
+      },
+      {
+        "name": "意式风情区",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "海河东岸",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "design",
+          "street"
+        ]
+      },
+      {
+        "name": "古文化街",
+        "type": "culture",
+        "cost": 0,
+        "area": "老城厢",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "food",
+          "heritage"
+        ]
+      },
+      {
+        "name": "海河步道",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "海河沿线",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "riverfront",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "天津自然博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "文化中心",
+        "durationHours": 2,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "family",
+          "indoor"
+        ]
+      },
+      {
+        "name": "西北角",
+        "type": "food",
+        "cost": 0,
+        "area": "老城厢",
+        "durationHours": 1.5,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "street"
+        ]
+      },
+      {
+        "name": "天津之眼外圈",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "海河桥区",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "photo",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "国家海洋博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "滨海新区",
+        "durationHours": 2.5,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "family",
+          "indoor"
+        ]
+      }
+    ],
+    "洛阳": [
+      {
+        "name": "龙门石窟",
+        "type": "culture",
+        "cost": 90,
+        "area": "龙门片区",
+        "durationHours": 3,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "history",
+          "classic"
+        ]
+      },
+      {
+        "name": "应天门",
+        "type": "culture",
+        "cost": 58,
+        "area": "古都中轴",
+        "durationHours": 2,
+        "pace": "balanced",
+        "tags": [
+          "culture",
+          "history",
+          "photo"
+        ]
+      },
+      {
+        "name": "洛邑古城",
+        "type": "citywalk",
+        "cost": 0,
+        "area": "老城",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "citywalk",
+          "heritage",
+          "night_walk"
+        ]
+      },
+      {
+        "name": "白马寺",
+        "type": "culture",
+        "cost": 35,
+        "area": "白马寺片区",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "culture",
+          "temple",
+          "history"
+        ]
+      },
+      {
+        "name": "洛阳博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "洛龙区",
+        "durationHours": 2,
+        "pace": "balanced",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "history",
+          "indoor"
+        ]
+      },
+      {
+        "name": "十字街",
+        "type": "food",
+        "cost": 0,
+        "area": "老城",
+        "durationHours": 1.5,
+        "pace": "balanced",
+        "tags": [
+          "food",
+          "local_food",
+          "night_market"
+        ]
+      },
+      {
+        "name": "隋唐城遗址植物园",
+        "type": "nature",
+        "cost": 30,
+        "area": "洛龙区",
+        "durationHours": 2,
+        "pace": "relaxed",
+        "tags": [
+          "nature",
+          "family",
+          "park"
+        ]
+      },
+      {
+        "name": "牡丹博物馆",
+        "type": "museum",
+        "cost": 0,
+        "area": "洛龙区",
+        "durationHours": 1.5,
+        "pace": "relaxed",
+        "indoor": true,
+        "tags": [
+          "museum",
+          "family",
+          "indoor"
+        ]
+      }
+    ]
+  }
+}

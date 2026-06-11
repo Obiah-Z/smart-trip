@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.production.example
+.git
+.idea
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+frontend/node_modules/
+frontend/dist/
+backend/.venv/
+backend/data/sandbox_runs/
+backend/data/*.sqlite3
+backend/data/memory_store.json
+backend/data/session_runs_store.json

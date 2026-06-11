@@ -1,0 +1,58 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Python caches and virtual environments
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+backend/.venv/
+
+# Node dependencies and build output
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+
+# Runtime state and local stores
+backend/data/memory_store.json
+backend/data/session_runs_store.json
+backend/data/sandbox_runs/
+backend/data/*.sqlite
+backend/data/*.sqlite3
+backend/data/*.db
+sandbox-write-should-fail.txt
+
+# Generated media assets
+backend/data/generated_images/
+
+# Local editor and machine state
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Local agent metadata
+.agents/
+.codex/
+
+# Local tunnel configuration can expose private host and port details.
+deploy/frp/*.toml
