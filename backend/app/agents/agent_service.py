@@ -114,11 +114,12 @@ class AgentService:
         attractions = attraction_result["output"].get("attractions", []) if attraction_result is not None else []
         weather_payload = weather_result["output"] if weather_result is not None else None
 
+        hotel_options = hotel_candidates[:2]
         estimated_hotel_cost = 0
         if hotel_result is not None:
             stay_nights = max(1, constraints["days"] - 1)
             estimated_hotel_cost = (
-                sum(hotel["pricePerNight"] for hotel in hotel_result["output"].get("hotels", [])[:1]) * stay_nights
+                sum(hotel["pricePerNight"] for hotel in hotel_options[:1]) * stay_nights
             )
 
         estimated_ticket_cost = 0
@@ -128,7 +129,26 @@ class AgentService:
         transport_cost = max(300, constraints["budget"] // 6) if tool_results else 0
         food_cost = max(200, constraints["days"] * 120) if tool_results else 0
         total_budget = transport_cost + food_cost + estimated_hotel_cost + estimated_ticket_cost
-        hotel_options = hotel_candidates[:2]
+        budget_breakdown = {
+            "transport": transport_cost,
+            "accommodation": estimated_hotel_cost,
+            "food": food_cost,
+            "tickets": estimated_ticket_cost,
+        }
+        budget_plan = self._apply_budget_policy(
+            constraints=constraints,
+            hotel_candidates=hotel_candidates,
+            hotel_options=hotel_options,
+            budget_breakdown=budget_breakdown,
+            total_budget=total_budget,
+        )
+        hotel_options = budget_plan["hotel_options"]
+        budget_breakdown = budget_plan["budget_breakdown"]
+        total_budget = budget_plan["total_budget"]
+        estimated_hotel_cost = budget_breakdown["accommodation"]
+        food_cost = budget_breakdown["food"]
+        estimated_ticket_cost = budget_breakdown["tickets"]
+        transport_cost = budget_breakdown["transport"]
         food_recommendations = self._build_food_recommendations(
             attractions=attractions,
             preferences=constraints["preferences"],
@@ -154,14 +174,11 @@ class AgentService:
         budget_insights = self._build_budget_insights(
             budget_limit=constraints.get("budget") or 0,
             total_budget=total_budget,
-            budget_breakdown={
-                "transport": transport_cost,
-                "accommodation": estimated_hotel_cost,
-                "food": food_cost,
-                "tickets": estimated_ticket_cost,
-            },
+            budget_breakdown=budget_breakdown,
             primary_hotel=hotel_options[0] if hotel_options else None,
             days=constraints["days"],
+            budget_policy=constraints.get("budget_policy"),
+            target_budget=constraints.get("target_budget"),
         )
         trip_tips = self._build_trip_tips(
             constraints=constraints,
@@ -200,6 +217,7 @@ class AgentService:
                 "accommodation": estimated_hotel_cost,
                 "food": food_cost,
                 "tickets": estimated_ticket_cost,
+                **({"experience": budget_breakdown["experience"]} if budget_breakdown.get("experience") else {}),
             },
             "days": route_days,
             "weather": [weather_payload] if weather_payload is not None else [],
@@ -249,6 +267,74 @@ class AgentService:
 
     def _tool_result(self, tool_results: list[dict[str, Any]], tool_name: str) -> dict[str, Any] | None:
         return next((item for item in tool_results if item["tool_name"] == tool_name), None)
+
+    def _apply_budget_policy(
+        self,
+        *,
+        constraints: dict[str, Any],
+        hotel_candidates: list[dict[str, Any]],
+        hotel_options: list[dict[str, Any]],
+        budget_breakdown: dict[str, int],
+        total_budget: int,
+    ) -> dict[str, Any]:
+        target_budget = constraints.get("target_budget") or constraints.get("budget") or 0
+        budget_policy = constraints.get("budget_policy")
+        if budget_policy != "target_near" or target_budget <= 0 or total_budget >= target_budget:
+            return {
+                "hotel_options": hotel_options,
+                "budget_breakdown": {**budget_breakdown, "experience": 0},
+                "total_budget": total_budget,
+            }
+
+        stay_nights = max(1, constraints["days"] - 1)
+        selected_hotels = hotel_options
+        upgraded_hotel_cost = budget_breakdown["accommodation"]
+        fixed_without_hotel = total_budget - budget_breakdown["accommodation"]
+        hotel_budget_cap = max(0, target_budget - fixed_without_hotel)
+
+        affordable_hotels = [
+            item
+            for item in hotel_candidates
+            if int(item.get("pricePerNight", 0) or 0) * stay_nights <= hotel_budget_cap
+        ]
+        if affordable_hotels:
+            preferred_hotel = max(
+                affordable_hotels,
+                key=lambda item: (
+                    int(item.get("pricePerNight", 0) or 0),
+                    float(item.get("comfortScore", 0) or 0),
+                    float(item.get("rating", 0) or 0),
+                ),
+            )
+            backups = [item for item in hotel_candidates if item.get("name") != preferred_hotel.get("name")]
+            selected_hotels = [preferred_hotel, *backups][:2]
+            upgraded_hotel_cost = int(preferred_hotel.get("pricePerNight", 0) or 0) * stay_nights
+
+        adjusted_breakdown = {
+            **budget_breakdown,
+            "accommodation": upgraded_hotel_cost,
+            "experience": 0,
+        }
+        adjusted_total = (
+            adjusted_breakdown["transport"]
+            + adjusted_breakdown["accommodation"]
+            + adjusted_breakdown["food"]
+            + adjusted_breakdown["tickets"]
+        )
+        remaining = max(0, target_budget - adjusted_total)
+        if remaining > 0:
+            food_boost = min(remaining, max(120, constraints["days"] * 80))
+            adjusted_breakdown["food"] += food_boost
+            remaining -= food_boost
+        if remaining > 0:
+            adjusted_breakdown["experience"] = remaining
+
+        adjusted_total = sum(adjusted_breakdown.values())
+        return {
+            "hotel_options": selected_hotels,
+            "budget_breakdown": adjusted_breakdown,
+            "total_budget": adjusted_total,
+        }
 
     def _build_food_recommendations(
         self,
@@ -426,8 +512,24 @@ class AgentService:
         budget_breakdown: dict[str, int],
         primary_hotel: dict[str, Any] | None,
         days: int,
+        budget_policy: str | None = None,
+        target_budget: int | None = None,
     ) -> list[dict[str, Any]]:
         insights: list[dict[str, Any]] = []
+        if budget_policy == "target_near" and (target_budget or budget_limit) > 0:
+            target = target_budget or budget_limit
+            delta = abs(target - total_budget)
+            insights.append(
+                {
+                    "label": "贴近预算",
+                    "value": f"目标 ¥{target}",
+                    "detail": (
+                        f"已按“尽可能贴近预算”重新分配，当前估算约 ¥{total_budget}，"
+                        f"与目标相差约 ¥{delta}；优先把余量用于住宿、餐饮和体验升级。"
+                    ),
+                }
+            )
+
         if budget_limit > 0:
             delta = budget_limit - total_budget
             if delta >= 0:
@@ -469,6 +571,14 @@ class AgentService:
                 "detail": "餐饮和门票是最容易继续加减的部分；如果你想升级体验，通常先从这两块微调更自然。",
             }
         )
+        if budget_breakdown.get("experience", 0) > 0:
+            insights.append(
+                {
+                    "label": "体验预留",
+                    "value": f"约 ¥{budget_breakdown.get('experience', 0)}",
+                    "detail": "这部分用于更好的座位、茶馆/夜游/讲解等弹性体验，不强行塞进门票或酒店价格里。",
+                }
+            )
         return insights
 
     def _build_trip_tips(

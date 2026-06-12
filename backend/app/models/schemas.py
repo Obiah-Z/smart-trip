@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DemoPlanRequest(BaseModel):
@@ -69,13 +69,19 @@ class MemoryUpdateItem(BaseModel):
 
 
 class StructuredConstraints(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
+
     destination: str | None
     days: int | None
     budget: int
+    budget_policy: str | None = None
+    target_budget: int | None = None
     pace: str
     preferences: list[str]
     excluded_attractions: list[str] = Field(default_factory=list)
     expanded_excluded_attractions: list[str] = Field(default_factory=list)
+    revision_intent: dict[str, Any] = Field(default_factory=dict)
+    followup_replan: bool = Field(default=False, alias="_followup_replan")
 
 
 class ToolResult(BaseModel):

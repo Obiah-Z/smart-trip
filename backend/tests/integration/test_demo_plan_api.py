@@ -1,8 +1,26 @@
 import os
 
+import pytest
 from fastapi.testclient import TestClient
 
+from app.db import repositories as repository_module
+from app.db import sqlite as sqlite_store
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def isolated_storage(tmp_path, monkeypatch) -> None:
+    db_path = tmp_path / "smart_trip.sqlite3"
+    memory_path = tmp_path / "memory_store.json"
+    session_runs_path = tmp_path / "session_runs_store.json"
+
+    monkeypatch.setattr(sqlite_store, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(sqlite_store, "DB_PATH", db_path)
+    monkeypatch.setattr(sqlite_store, "MEMORY_PATH", memory_path)
+    monkeypatch.setattr(sqlite_store, "SESSION_RUNS_PATH", session_runs_path)
+    monkeypatch.setattr(repository_module, "MEMORY_PATH", memory_path)
+    monkeypatch.setattr(repository_module, "SESSION_RUNS_PATH", session_runs_path)
+    sqlite_store.init_db()
 
 
 def test_demo_plan_api_returns_pipeline() -> None:
@@ -398,6 +416,50 @@ def test_demo_plan_api_followup_budget_update_reuses_session_and_replans() -> No
     assert payload["final_plan"]["summary"]["destinationCity"] == "杭州"
 
 
+def test_demo_plan_api_followup_budget_target_near_reuses_session_and_replans() -> None:
+    os.environ["OPENAI_MODE"] = "mock"
+    client = TestClient(app)
+
+    first_response = client.post(
+        "/api/demo/plan",
+        json={
+            "user_id": "integration-followup-budget-target-near-user",
+            "message": "帮我规划一个杭州三日游，预算3000，节奏轻松一点，酒店尽量安静，想吃本地特色",
+        },
+    )
+
+    assert first_response.status_code == 200
+    first_payload = first_response.json()
+
+    second_response = client.post(
+        "/api/demo/plan",
+        json={
+            "user_id": "integration-followup-budget-target-near-user",
+            "session_id": first_payload["session_id"],
+            "message": "将总体预算尽可能贴近3000",
+        },
+    )
+
+    assert second_response.status_code == 200
+    payload = second_response.json()
+    assert payload["session_id"] == first_payload["session_id"]
+    assert payload["session_context"]["session_found"] is True
+    assert payload["task_profile"]["task_type"] == "travel_planning"
+    assert payload["structured_constraints"]["destination"] == "杭州"
+    assert payload["structured_constraints"]["days"] == 3
+    assert payload["structured_constraints"]["budget"] == 3000
+    assert payload["structured_constraints"]["budget_policy"] == "target_near"
+    assert payload["structured_constraints"]["target_budget"] == 3000
+    assert payload["structured_constraints"]["_followup_replan"] is True
+    assert payload["structured_constraints"]["revision_intent"]["revision_type"] == "budget_optimization"
+    assert payload["final_plan"].get("consultingType") is None
+    assert "没有匹配到可直接执行的轻量能力" not in payload["llm_output"]["llm_summary"]
+    assert payload["final_plan"]["summary"]["destinationCity"] == "杭州"
+    assert payload["final_plan"]["summary"]["days"] == 3
+    assert abs(payload["final_plan"]["summary"]["totalBudget"] - 3000) <= 200
+    assert any(item["label"] == "贴近预算" for item in payload["final_plan"]["budgetInsights"])
+
+
 def test_demo_plan_api_supports_new_mock_city_pipeline() -> None:
     os.environ["OPENAI_MODE"] = "mock"
     client = TestClient(app)
@@ -705,6 +767,44 @@ def test_demo_plan_api_followup_excluding_xihu_without_session_id_auto_resumes_r
     disallowed = {"西湖", "白堤孤山"}
     assert not disallowed.intersection(all_activities)
     assert not disallowed.intersection(recommendation_names)
+
+
+def test_demo_plan_api_followup_budget_target_near_without_session_id_auto_resumes_recent_plan() -> None:
+    os.environ["OPENAI_MODE"] = "mock"
+    client = TestClient(app)
+
+    first_response = client.post(
+        "/api/demo/plan",
+        json={
+            "user_id": "integration-budget-target-near-auto-resume-user",
+            "message": "帮我规划一个杭州三日游，预算3000，节奏轻松一点，酒店尽量安静，想吃本地特色",
+        },
+    )
+
+    assert first_response.status_code == 200
+    first_payload = first_response.json()
+    assert first_payload["structured_constraints"]["destination"] == "杭州"
+    assert first_payload["structured_constraints"]["days"] == 3
+
+    second_response = client.post(
+        "/api/demo/plan",
+        json={
+            "user_id": "integration-budget-target-near-auto-resume-user",
+            "message": "总花费尽量接近3000",
+        },
+    )
+
+    assert second_response.status_code == 200
+    payload = second_response.json()
+    assert payload["session_id"] == first_payload["session_id"]
+    assert payload["session_context"]["session_found"] is True
+    assert payload["task_profile"]["task_type"] == "travel_planning"
+    assert payload["structured_constraints"]["destination"] == "杭州"
+    assert payload["structured_constraints"]["days"] == 3
+    assert payload["structured_constraints"]["budget_policy"] == "target_near"
+    assert payload["structured_constraints"]["target_budget"] == 3000
+    assert payload["final_plan"].get("consultingType") is None
+    assert abs(payload["final_plan"]["summary"]["totalBudget"] - 3000) <= 200
 
 
 def test_demo_plan_api_followup_excluding_chengdu_spot_without_session_id_auto_resumes_recent_plan() -> None:

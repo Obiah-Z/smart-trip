@@ -73,6 +73,28 @@ def test_extracts_followup_budget_and_comfort_update_without_destination() -> No
     assert result.pace_explicit is False
 
 
+def test_extracts_budget_target_near_policy_from_followup_expression() -> None:
+    extractor = SlotExtractor()
+
+    result = extractor.extract("将总体预算尽可能贴近3000")
+
+    assert result.destination is None
+    assert result.days is None
+    assert result.budget == 3000
+    assert result.target_budget == 3000
+    assert result.budget_policy == "target_near"
+
+
+def test_extracts_budget_cap_policy_from_followup_expression() -> None:
+    extractor = SlotExtractor()
+
+    result = extractor.extract("把总花费控制在3000以内")
+
+    assert result.budget == 3000
+    assert result.target_budget == 3000
+    assert result.budget_policy == "cap"
+
+
 def test_extracts_followup_comfort_phrase_variants() -> None:
     extractor = SlotExtractor()
 

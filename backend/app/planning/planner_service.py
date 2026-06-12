@@ -11,6 +11,7 @@ from app.db.repositories import SessionRunRepository
 from app.llm.openai_client import OpenAIPlannerClient
 from app.memory.memory_injection_service import MemoryInjectionService
 from app.memory.memory_service import MemoryService
+from app.planning.revision_intent import RevisionIntent, RevisionIntentResolver
 from app.planning.slot_extractor import SlotExtractor
 from app.planning.task_router import TaskRouter
 from app.presentation.geo_service import GeoPresentationService
@@ -91,6 +92,7 @@ class PlannerService:
         self._geo_presentation_service = geo_presentation_service
         self._image_generation_service = image_generation_service
         self._graph_expansion_service = graph_expansion_service
+        self._revision_intent_resolver = RevisionIntentResolver()
 
     def run(self, *, user_id: str, session_id: str | None, message: str) -> dict[str, Any]:
         slots = self._slot_extractor.extract(message)
@@ -101,6 +103,11 @@ class PlannerService:
         )
         resolved_session_id = active_session_id or f"session-{uuid.uuid4().hex[:8]}"
         session_context = self._session_context_service.load(session_id=active_session_id)
+        revision_intent = self._revision_intent_resolver.analyze(
+            message=message,
+            slots=slots,
+            session_context=session_context,
+        )
         effective_message = self._resolve_effective_message(
             message=message,
             slots=slots,
@@ -110,6 +117,7 @@ class PlannerService:
             slots=slots,
             session_context=session_context,
             message=message,
+            revision_intent=revision_intent,
         )
         structured_constraints = self._expand_structured_constraints(structured_constraints=structured_constraints)
         resolved_days = structured_constraints["days"]
@@ -119,10 +127,12 @@ class PlannerService:
             slots=slots,
             structured_constraints=structured_constraints,
             session_context=session_context,
+            revision_intent=revision_intent,
         )
         session_context = {
             **session_context,
             "effective_structured_constraints": structured_constraints,
+            "revision_intent": revision_intent.to_dict(),
         }
         task_profile = {
             "task_type": task_profile_model.task_type,
@@ -304,10 +314,16 @@ class PlannerService:
         slots,
         session_context: dict[str, Any],
         message: str,
+        revision_intent: RevisionIntent,
     ) -> dict[str, Any]:
         latest_constraints = session_context.get("latest_structured_constraints") or {}
         baseline_constraints = self._resolve_session_baseline_constraints(session_context=session_context)
-        is_followup_update = self._is_followup_update(message=message, slots=slots, session_context=session_context)
+        is_followup_update = self._is_followup_update(
+            message=message,
+            slots=slots,
+            session_context=session_context,
+            revision_intent=revision_intent,
+        )
         is_clarification_recovery = self._is_clarification_recovery(
             slots=slots,
             session_context=session_context,
@@ -321,13 +337,18 @@ class PlannerService:
         if is_clarification_recovery:
             base_preferences = list(latest_constraints.get("preferences") or baseline_constraints.get("preferences") or [])
             merged_preferences = self._merge_preferences(base_preferences=base_preferences, new_preferences=slots.preferences)
+            resolved_budget = slots.budget if slots.budget is not None else latest_constraints.get("budget") or baseline_constraints.get("budget", 0)
+            budget_policy = slots.budget_policy or latest_constraints.get("budget_policy")
             return {
                 "destination": resolved_destination,
                 "days": slots.days if slots.days is not None else latest_constraints.get("days") or baseline_constraints.get("days"),
-                "budget": slots.budget if slots.budget is not None else latest_constraints.get("budget") or baseline_constraints.get("budget", 0),
+                "budget": resolved_budget,
                 "pace": slots.pace if slots.pace_explicit else latest_constraints.get("pace") or baseline_constraints.get("pace", "balanced"),
                 "preferences": merged_preferences,
                 "excluded_attractions": list(dict.fromkeys(slots.excluded_attractions)),
+                "budget_policy": budget_policy,
+                "target_budget": slots.target_budget if slots.target_budget is not None else latest_constraints.get("target_budget") or resolved_budget,
+                "revision_intent": revision_intent.to_dict(),
                 "_followup_replan": False,
             }
 
@@ -338,6 +359,14 @@ class PlannerService:
                 base_attractions=latest_constraints.get("excluded_attractions") or baseline_constraints.get("excluded_attractions") or [],
                 new_attractions=slots.excluded_attractions,
             )
+            resolved_budget = self._resolve_followup_budget(
+                slots=slots,
+                latest_constraints=latest_constraints,
+                baseline_constraints=baseline_constraints,
+                revision_intent=revision_intent,
+            )
+            budget_policy = revision_intent.budget_policy or slots.budget_policy or latest_constraints.get("budget_policy")
+            target_budget = revision_intent.target_budget or slots.target_budget or latest_constraints.get("target_budget") or resolved_budget
             return {
                 "destination": resolved_destination,
                 "days": slots.days if slots.days is not None else self._resolve_followup_days(
@@ -345,10 +374,13 @@ class PlannerService:
                     baseline_constraints=baseline_constraints,
                     message=message,
                 ),
-                "budget": slots.budget if slots.budget is not None else latest_constraints.get("budget") or baseline_constraints.get("budget", 0),
+                "budget": resolved_budget,
                 "pace": slots.pace if slots.pace_explicit else latest_constraints.get("pace") or baseline_constraints.get("pace", "balanced"),
                 "preferences": merged_preferences,
                 "excluded_attractions": merged_excluded_attractions,
+                "budget_policy": budget_policy,
+                "target_budget": target_budget,
+                "revision_intent": revision_intent.to_dict(),
                 "_followup_replan": True,
             }
 
@@ -360,6 +392,9 @@ class PlannerService:
             "pace": slots.pace,
             "preferences": slots.preferences,
             "excluded_attractions": list(dict.fromkeys(slots.excluded_attractions)),
+            "budget_policy": slots.budget_policy,
+            "target_budget": slots.target_budget,
+            "revision_intent": revision_intent.to_dict(),
             "_followup_replan": False,
         }
 
@@ -442,13 +477,19 @@ class PlannerService:
         slots,
         structured_constraints: dict[str, Any],
         session_context: dict[str, Any],
+        revision_intent: RevisionIntent,
     ):
         profile = self._task_router.analyze(
             message,
             days=structured_constraints["days"],
             preferences=structured_constraints["preferences"],
         )
-        if self._is_followup_update(message=message, slots=slots, session_context=session_context):
+        if self._is_followup_update(
+            message=message,
+            slots=slots,
+            session_context=session_context,
+            revision_intent=revision_intent,
+        ):
             return self._task_router.force_planning_profile(
                 message=message,
                 days=structured_constraints["days"],
@@ -456,13 +497,22 @@ class PlannerService:
             )
         return profile
 
-    def _is_followup_update(self, *, message: str, slots, session_context: dict[str, Any]) -> bool:
+    def _is_followup_update(
+        self,
+        *,
+        message: str,
+        slots,
+        session_context: dict[str, Any],
+        revision_intent: RevisionIntent | None = None,
+    ) -> bool:
         latest_constraints = session_context.get("latest_structured_constraints")
         latest_task_profile = session_context.get("latest_task_profile") or {}
         if not session_context.get("session_found") or not latest_constraints:
             return False
         if latest_task_profile.get("task_type") != "travel_planning":
             return False
+        if revision_intent is not None and revision_intent.is_revision:
+            return True
         normalized_message = self._normalize_followup_message(message)
         if self._looks_like_consulting_followup(message=normalized_message):
             return False
@@ -487,20 +537,26 @@ class PlannerService:
             return None
         if getattr(slots, "destination_explicit", False) and slots.destination != latest_constraints.get("destination"):
             return None
+        revision_intent = self._revision_intent_resolver.analyze(
+            message=message,
+            slots=slots,
+            session_context=candidate_context,
+        )
+        if not revision_intent.is_revision:
+            return None
         return candidate_session_id
 
     def _looks_like_followup_without_session(self, *, message: str, slots) -> bool:
-        normalized_message = self._normalize_followup_message(message)
-        if self._looks_like_consulting_followup(message=normalized_message):
-            return False
-        return self._has_followup_update_signal(message=normalized_message, slots=slots)
+        return self._revision_intent_resolver.has_revision_signal(message=message, slots=slots)
 
     def _has_followup_update_signal(self, *, message: str, slots) -> bool:
+        if self._revision_intent_resolver.has_revision_signal(message=message, slots=slots):
+            return True
         if any(keyword in message for keyword in self.EXCLUSION_UPDATE_KEYWORDS):
             return True
         if any(keyword in message for keyword in self.REPLAN_UPDATE_KEYWORDS):
             return True
-        if re.search(r"预算\s*\d+|(\d{3,5})\s*元", message):
+        if re.search(r"(?:预算|总预算|总体预算|总花费|总费用|花费|费用).{0,12}?\d{3,6}|(\d{3,5})\s*元", message):
             return True
         if slots.days is not None or slots.budget is not None or getattr(slots, "pace_explicit", False):
             return True
@@ -578,6 +634,26 @@ class PlannerService:
             return max(latest_days or 1, baseline_days or 1)
         return 1
 
+    def _resolve_followup_budget(
+        self,
+        *,
+        slots,
+        latest_constraints: dict[str, Any],
+        baseline_constraints: dict[str, Any],
+        revision_intent: RevisionIntent,
+    ) -> int:
+        if slots.budget is not None:
+            return slots.budget
+        if revision_intent.target_budget is not None:
+            return revision_intent.target_budget
+        latest_budget = latest_constraints.get("budget")
+        baseline_budget = baseline_constraints.get("budget")
+        if isinstance(latest_budget, int) and latest_budget > 0:
+            return latest_budget
+        if isinstance(baseline_budget, int) and baseline_budget > 0:
+            return baseline_budget
+        return 0
+
     def _finalize_session_context(
         self,
         *,
@@ -600,6 +676,8 @@ class PlannerService:
                 "destination": structured_constraints["destination"],
                 "days": structured_constraints["days"],
                 "budget": structured_constraints["budget"],
+                "budget_policy": structured_constraints.get("budget_policy"),
+                "target_budget": structured_constraints.get("target_budget"),
                 "pace": structured_constraints["pace"],
                 "preferences": structured_constraints["preferences"],
                 "excluded_attractions": structured_constraints.get("excluded_attractions", []),

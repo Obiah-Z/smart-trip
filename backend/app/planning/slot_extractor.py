@@ -101,6 +101,8 @@ class SlotExtractionResult:
     destination_explicit: bool
     days: int | None
     budget: int | None
+    budget_policy: str | None
+    target_budget: int | None
     pace: str
     pace_explicit: bool
     preferences: list[str]
@@ -111,7 +113,7 @@ class SlotExtractor:
     def extract(self, message: str) -> SlotExtractionResult:
         destination = self._extract_destination(message)
         days = self._extract_days(message)
-        budget = self._extract_budget(message)
+        budget, budget_policy = self._extract_budget(message)
         pace, pace_explicit = self._extract_pace(message)
         preferences = self._extract_preferences(message)
         return SlotExtractionResult(
@@ -119,6 +121,8 @@ class SlotExtractor:
             destination_explicit=destination is not None,
             days=days,
             budget=budget,
+            budget_policy=budget_policy,
+            target_budget=budget,
             pace=pace,
             pace_explicit=pace_explicit,
             preferences=preferences,
@@ -142,14 +146,48 @@ class SlotExtractor:
         mapping = {"一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7}
         return mapping.get(value, 3)
 
-    def _extract_budget(self, message: str) -> int | None:
-        match = re.search(r"预算(?:提升到|提高到|增加到|改到|改成|调整到)?\s*(\d+)", message)
+    def _extract_budget(self, message: str) -> tuple[int | None, str | None]:
+        policy = self._extract_budget_policy(message)
+        match = re.search(
+            r"(?:预算|总预算|总体预算|总花费|总费用|总价|花费|费用)"
+            r".{0,12}?(?:提升到|提高到|增加到|改到|改成|调整到|压到|控制到|控制在)?\s*(\d{3,6})",
+            message,
+        )
         if match:
-            return int(match.group(1))
+            return int(match.group(1)), policy or self._policy_from_budget_context(message)
         amount_match = re.search(r"(\d{3,5})\s*元", message)
         if amount_match:
-            return int(amount_match.group(1))
+            return int(amount_match.group(1)), policy or self._policy_from_budget_context(message)
+        around_match = re.search(r"(\d{3,5})\s*(?:左右|上下|以内|以下|内|附近)", message)
+        if around_match and self._has_budget_context(message):
+            return int(around_match.group(1)), policy or self._policy_from_budget_context(message)
+        close_match = re.search(r"(?:贴近|接近|靠近|用满|花满).{0,8}?(\d{3,5})", message)
+        if close_match:
+            return int(close_match.group(1)), policy or "target_near"
+        return None, policy
+
+    def _extract_budget_policy(self, message: str) -> str | None:
+        if re.search(r"(?:尽可能|尽量|最好)?(?:贴近|接近|靠近)|(?:尽量|尽可能)?(?:用满|花满)", message):
+            return "target_near"
+        if re.search(r"不超过|别超过|不要超过|以内|以下|控制在|控制到|压到|最多", message):
+            return "cap"
+        if re.search(r"提升到|提高到|增加到|升级到", message):
+            return "increase_to"
+        if re.search(r"便宜|省钱|降低|减少|压缩|再低一点|少花", message):
+            return "minimize"
         return None
+
+    def _policy_from_budget_context(self, message: str) -> str:
+        if re.search(r"提升|提高|增加|升级", message):
+            return "increase_to"
+        if re.search(r"不超过|别超过|不要超过|以内|以下|控制|压到|最多", message):
+            return "cap"
+        if re.search(r"贴近|接近|靠近|左右|上下|用满|花满|尽量|尽可能", message):
+            return "target_near"
+        return "set_to"
+
+    def _has_budget_context(self, message: str) -> bool:
+        return bool(re.search(r"预算|总预算|总体预算|总花费|总费用|总价|花费|费用|控制|贴近|接近|用满", message))
 
     def _extract_pace(self, message: str) -> tuple[str, bool]:
         for keyword, value in PACE_KEYWORDS.items():
