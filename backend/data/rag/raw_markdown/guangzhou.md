@@ -19,7 +19,7 @@ section_counts:
   attractions: 7
   hotels: 4
   has_weather: 1
-generated_at: "2026-06-08T08:26:24.598931+00:00"
+generated_at: "2026-06-12T08:29:45.413627+00:00"
 ---
 
 # 广州旅行知识库

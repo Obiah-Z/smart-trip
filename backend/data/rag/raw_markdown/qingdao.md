@@ -19,7 +19,7 @@ section_counts:
   attractions: 7
   hotels: 4
   has_weather: 1
-generated_at: "2026-06-08T08:26:24.599513+00:00"
+generated_at: "2026-06-12T08:29:45.414161+00:00"
 ---
 
 # 青岛旅行知识库

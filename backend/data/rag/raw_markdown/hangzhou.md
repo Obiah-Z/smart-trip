@@ -19,7 +19,7 @@ section_counts:
   attractions: 13
   hotels: 6
   has_weather: 1
-generated_at: "2026-06-08T08:26:24.597996+00:00"
+generated_at: "2026-06-12T08:29:45.412777+00:00"
 ---
 
 # 杭州旅行知识库

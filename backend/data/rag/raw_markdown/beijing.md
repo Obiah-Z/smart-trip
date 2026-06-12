@@ -19,7 +19,7 @@ section_counts:
   attractions: 7
   hotels: 4
   has_weather: 1
-generated_at: "2026-06-08T08:26:24.597784+00:00"
+generated_at: "2026-06-12T08:29:45.412588+00:00"
 ---
 
 # 北京旅行知识库

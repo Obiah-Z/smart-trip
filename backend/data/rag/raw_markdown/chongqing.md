@@ -19,7 +19,7 @@ section_counts:
   attractions: 7
   hotels: 4
   has_weather: 1
-generated_at: "2026-06-08T08:26:24.598648+00:00"
+generated_at: "2026-06-12T08:29:45.413361+00:00"
 ---
 
 # 重庆旅行知识库
