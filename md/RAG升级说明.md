@@ -93,7 +93,7 @@ python scripts/build_rag_vector_index.py
 配置方式：
 
 ```env
-OPENAI_BASE_URL=https://api.deepseek.com
+OPENAI_BASE_URL=https://hub.tokenpanda.top/v1
 OPENAI_API_KEY=你的 DeepSeek Key
 OPENAI_MODEL=deepseek-v4-pro
 
