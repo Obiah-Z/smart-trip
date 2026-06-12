@@ -33,6 +33,8 @@ def test_skill_selection_service_uses_heuristics_for_itinerary_request() -> None
     assert "route.plan" in selected_ids
     assert "attraction.search" in selected_ids
     assert "hotel.search" in selected_ids
+    assert "budget.optimize" in selected_ids
+    assert "itinerary.audit" in selected_ids
     assert "knowledge.snapshot" not in selected_ids
 
 
@@ -65,6 +67,7 @@ def test_skill_selection_service_adds_hotel_search_for_multi_day_itinerary_witho
     assert "route.plan" in selected_ids
     assert "attraction.search" in selected_ids
     assert "hotel.search" in selected_ids
+    assert "itinerary.audit" in selected_ids
 
 
 def test_skill_selection_service_selects_knowledge_snapshot_for_system_query() -> None:
@@ -187,6 +190,8 @@ def test_skill_selection_service_keeps_full_planning_chain_for_followup_replan()
     assert "attraction.search" in selected_ids
     assert "hotel.search" in selected_ids
     assert "weather.lookup" in selected_ids
+    assert "budget.optimize" in selected_ids
+    assert "itinerary.audit" in selected_ids
 
 
 def test_skill_selection_service_treats_family_consulting_query_as_lightweight() -> None:

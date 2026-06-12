@@ -67,6 +67,23 @@ class ToolService:
             if field_name == "attraction_items":
                 attraction_result = self._find_tool_result(tool_results=tool_results, tool_name="attraction.search")
                 payload[field_name] = attraction_result["output"].get("attractions", []) if attraction_result is not None else []
+                continue
+            if field_name == "hotel_options":
+                hotel_result = self._find_tool_result(tool_results=tool_results, tool_name="hotel.search")
+                payload[field_name] = hotel_result["output"].get("hotels", []) if hotel_result is not None else []
+                continue
+            if field_name == "route_days":
+                route_result = self._find_tool_result(tool_results=tool_results, tool_name="route.plan")
+                payload[field_name] = route_result["output"].get("days", []) if route_result is not None else []
+                continue
+            if field_name == "weather":
+                weather_result = self._find_tool_result(tool_results=tool_results, tool_name="weather.lookup")
+                payload[field_name] = weather_result["output"] if weather_result is not None else {}
+                continue
+            if field_name == "budget_optimization":
+                budget_result = self._find_tool_result(tool_results=tool_results, tool_name="budget.optimize")
+                payload[field_name] = budget_result["output"] if budget_result is not None else {}
+                continue
 
         if "destination" in definition.input_schema and "destination" not in payload:
             payload["destination"] = structured_constraints["destination"]
@@ -126,6 +143,66 @@ class ToolService:
 
     def knowledge_snapshot(self, *, destination: str) -> dict[str, object]:
         return self.run_skill(skill_id="knowledge.snapshot", payload={"destination": destination})
+
+    def budget_optimize(
+        self,
+        *,
+        destination: str,
+        days: int,
+        budget: int,
+        target_budget: int | None,
+        budget_policy: str | None,
+        pace: str,
+        preferences: list[str],
+        hotel_options: list[dict[str, Any]],
+        route_days: list[dict[str, Any]],
+        attraction_items: list[dict[str, Any]],
+    ) -> dict[str, object]:
+        return self.run_skill(
+            skill_id="budget.optimize",
+            payload={
+                "destination": destination,
+                "days": days,
+                "budget": budget,
+                "target_budget": target_budget,
+                "budget_policy": budget_policy,
+                "pace": pace,
+                "preferences": preferences,
+                "hotel_options": hotel_options,
+                "route_days": route_days,
+                "attraction_items": attraction_items,
+            },
+        )
+
+    def itinerary_audit(
+        self,
+        *,
+        destination: str,
+        days: int,
+        budget: int,
+        pace: str,
+        preferences: list[str],
+        excluded_attractions: list[str],
+        route_days: list[dict[str, Any]],
+        hotel_options: list[dict[str, Any]],
+        weather: dict[str, Any],
+        budget_optimization: dict[str, Any],
+    ) -> dict[str, object]:
+        return self.run_skill(
+            skill_id="itinerary.audit",
+            payload={
+                "destination": destination,
+                "days": days,
+                "budget": budget,
+                "pace": pace,
+                "preferences": preferences,
+                "excluded_attractions": excluded_attractions,
+                "route_days": route_days,
+                "hotel_options": hotel_options,
+                "weather": weather,
+                "budget_optimization": budget_optimization,
+            },
+        )
 
     def _find_tool_result(self, *, tool_results: list[dict[str, Any]], tool_name: str) -> dict[str, Any] | None:
         return next((item for item in tool_results if item["tool_name"] == tool_name), None)

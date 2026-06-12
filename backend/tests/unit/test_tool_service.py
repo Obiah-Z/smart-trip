@@ -11,8 +11,12 @@ def test_tool_service_returns_weather_and_hotels() -> None:
     weather = service.weather_lookup(destination="杭州")
     hotels = service.hotel_search(destination="杭州", budget=3000, preferences=["quiet_hotel"])
 
+    assert weather["output"]["matched"] is True
     assert weather["output"]["summary"]
+    assert weather["output"]["travel_suitability"] in {"good", "moderate", "limited", "unknown"}
+    assert hotels["output"]["matched"] is True
     assert hotels["output"]["hotels"]
+    assert hotels["output"]["selection_strategy"]["quiet_required"] is True
     assert weather["sandbox"]["mode"] == "process_sandbox"
 
 
@@ -113,6 +117,86 @@ def test_tool_service_prioritizes_indoor_attractions_for_rainy_day_queries() -> 
     assert selected_names
     assert any(name in selected_names for name in {"中国茶叶博物馆", "良渚博物院"})
     assert attractions["output"]["attractions"][0].get("indoor") is True
+    assert attractions["output"]["selection_strategy"]["pace_aware"] is True
+
+
+def test_tool_service_outputs_complex_skill_diagnostics() -> None:
+    service = ToolService(skill_registry=SkillRegistry(), script_runner=SkillScriptRunner())
+
+    attractions = service.attraction_search(
+        destination="杭州",
+        preferences=["local_food"],
+        days=3,
+        pace="relaxed",
+        excluded_attractions=["西湖"],
+    )
+    selected_items = attractions["output"]["attractions"]
+    route = service.route_planner(
+        destination="杭州",
+        days=3,
+        pace="relaxed",
+        attraction_names=[item["name"] for item in selected_items],
+        attraction_items=selected_items,
+        excluded_attractions=["西湖"],
+    )
+
+    assert attractions["output"]["matched"] is True
+    assert attractions["output"]["selection_strategy"]["exclusion_applied"] is True
+    assert attractions["output"]["warnings"] == []
+    assert route["output"]["route_strategy"]["exclusion_applied"] is True
+    assert route["output"]["days_count"] == 3
+    assert route["output"]["warnings"] == []
+
+
+def test_tool_service_runs_budget_optimization_and_itinerary_audit() -> None:
+    service = ToolService(skill_registry=SkillRegistry(), script_runner=SkillScriptRunner())
+
+    hotels = service.hotel_search(destination="杭州", budget=10000, preferences=["quiet_hotel", "comfortable_hotel"])
+    attractions = service.attraction_search(
+        destination="杭州",
+        preferences=["local_food", "quiet_hotel"],
+        days=3,
+        pace="relaxed",
+        excluded_attractions=["西湖"],
+    )
+    route = service.route_planner(
+        destination="杭州",
+        days=3,
+        pace="relaxed",
+        attraction_names=[item["name"] for item in attractions["output"]["attractions"]],
+        attraction_items=attractions["output"]["attractions"],
+        excluded_attractions=["西湖"],
+    )
+    budget = service.budget_optimize(
+        destination="杭州",
+        days=3,
+        budget=10000,
+        target_budget=10000,
+        budget_policy="target_near",
+        pace="relaxed",
+        preferences=["quiet_hotel", "comfortable_hotel"],
+        hotel_options=hotels["output"]["hotels"],
+        route_days=route["output"]["days"],
+        attraction_items=attractions["output"]["attractions"],
+    )
+    audit = service.itinerary_audit(
+        destination="杭州",
+        days=3,
+        budget=10000,
+        pace="relaxed",
+        preferences=["quiet_hotel", "comfortable_hotel"],
+        excluded_attractions=["西湖"],
+        route_days=route["output"]["days"],
+        hotel_options=hotels["output"]["hotels"],
+        weather={"summary": "多云"},
+        budget_optimization=budget["output"],
+    )
+
+    assert budget["output"]["budget_breakdown"]["accommodation"] > 0
+    assert budget["output"]["optimization_strategy"]["upgrade_focus"] == "accommodation"
+    assert budget["output"]["total_estimated"] == 10000
+    assert audit["output"]["audit_status"] in {"approved", "approved_with_warnings"}
+    assert audit["output"]["safe_to_present"] is True
 
 
 def test_tool_service_exposes_skill_metadata() -> None:

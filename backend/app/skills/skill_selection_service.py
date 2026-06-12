@@ -37,6 +37,7 @@ class SkillSelectionService:
     )
     HOTEL_KEYWORDS = ("酒店", "住宿", "民宿", "住哪里", "安静", "舒适", "舒服", "舒适度")
     WEATHER_KEYWORDS = ("天气", "气温", "外套", "穿什么", "步行", "适合旅游")
+    BUDGET_KEYWORDS = ("预算", "花费", "费用", "总预算", "总花费", "提升预算", "提高预算", "省钱", "成本")
     SYSTEM_KEYWORDS = ("mcp", "skill", "skills", "工具", "能力", "知识桥接", "系统", "外部知识")
 
     def __init__(self, openai_client: OpenAIPlannerClient) -> None:
@@ -132,6 +133,41 @@ class SkillSelectionService:
                 source="policy",
             )
 
+        should_add_budget_optimizer = (
+            itinerary_intent
+            and structured_constraints.get("destination")
+            and "budget.optimize" in skills_by_id
+            and "budget.optimize" not in item_map
+            and (
+                (structured_constraints.get("budget") or 0) > 0
+                or (structured_constraints.get("target_budget") or 0) > 0
+                or bool(structured_constraints.get("budget_policy"))
+                or "comfortable_hotel" in (structured_constraints.get("preferences") or [])
+                or self._contains_any(user_input, self.BUDGET_KEYWORDS)
+            )
+        )
+        if should_add_budget_optimizer:
+            item_map["budget.optimize"] = SkillSelectionItem(
+                skill_id="budget.optimize",
+                reason="当前规划包含预算、费用或住宿升级约束，需要生成预算拆分与优化建议。",
+                source="policy",
+            )
+
+        should_add_itinerary_audit = (
+            itinerary_intent
+            and structured_constraints.get("destination")
+            and resolved_days >= 1
+            and "route.plan" in item_map
+            and "itinerary.audit" in skills_by_id
+            and "itinerary.audit" not in item_map
+        )
+        if should_add_itinerary_audit:
+            item_map["itinerary.audit"] = SkillSelectionItem(
+                skill_id="itinerary.audit",
+                reason="按天路线生成后需要做天数、预算、住宿和排除景点一致性校验。",
+                source="policy",
+            )
+
         return sorted(item_map.values(), key=lambda item: skills_by_id[item.skill_id].priority)
 
     def _normalize(
@@ -172,8 +208,15 @@ class SkillSelectionService:
             or "comfortable_hotel" in preferences
         )
         weather_intent = self._contains_any(user_input, self.WEATHER_KEYWORDS) or self._matches_weather_question(user_input)
-        system_intent = self._contains_any(text, self.SYSTEM_KEYWORDS)
         explicit_budget = bool(re.search(r"预算\s*\d+|(\d{3,5})\s*元", user_input))
+        budget_intent = (
+            self._contains_any(user_input, self.BUDGET_KEYWORDS)
+            or explicit_budget
+            or bool(structured_constraints.get("budget_policy"))
+            or (structured_constraints.get("target_budget") or 0) > 0
+            or "comfortable_hotel" in preferences
+        )
+        system_intent = self._contains_any(text, self.SYSTEM_KEYWORDS)
 
         selected: list[SkillSelectionItem] = []
         for skill in available_skills:
@@ -196,9 +239,19 @@ class SkillSelectionService:
             elif skill.skill_id == "weather.lookup":
                 include = weather_intent or itinerary_intent or followup_planning
                 reason = "用户在规划旅行时需要天气适宜性作为补充判断。"
+            elif skill.skill_id == "budget.optimize":
+                include = budget_intent and (itinerary_intent or followup_planning)
+                reason = "用户提供了预算、费用或住宿升级约束，需要进行预算优化。"
+            elif skill.skill_id == "itinerary.audit":
+                include = (itinerary_intent or followup_planning) and structured_constraints.get("destination")
+                reason = "复杂路线生成后需要做最终一致性审计。"
 
             if not include and matched_keywords:
                 if skill.skill_id == "weather.lookup" and not weather_intent:
+                    continue
+                if skill.skill_id == "budget.optimize" and not (budget_intent and (itinerary_intent or followup_planning)):
+                    continue
+                if skill.skill_id == "itinerary.audit" and not (itinerary_intent or followup_planning):
                     continue
                 include = True
                 reason = f"用户输入命中了该 skill 的触发词：{', '.join(matched_keywords[:3])}。"

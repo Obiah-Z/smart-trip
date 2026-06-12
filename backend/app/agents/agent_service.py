@@ -17,6 +17,8 @@ class AgentService:
         "hotel": "hotel.search",
         "weather": "weather.lookup",
         "attraction": "attraction.search",
+        "budget": "budget.optimize",
+        "audit": "itinerary.audit",
     }
     ATTRACTION_TYPE_LABELS = {
         "nature": "自然风景",
@@ -108,11 +110,15 @@ class AgentService:
         hotel_result = self._tool_result(tool_results, self.TOOL_NAME_MAP["hotel"])
         weather_result = self._tool_result(tool_results, self.TOOL_NAME_MAP["weather"])
         attraction_result = self._tool_result(tool_results, self.TOOL_NAME_MAP["attraction"])
+        budget_result = self._tool_result(tool_results, self.TOOL_NAME_MAP["budget"])
+        audit_result = self._tool_result(tool_results, self.TOOL_NAME_MAP["audit"])
         route_days = route_result["output"]["days"] if route_result is not None else []
         hotel_candidates = hotel_result["output"].get("hotels", []) if hotel_result is not None else []
         nightly_budget = hotel_result["output"].get("nightly_budget", 0) if hotel_result is not None else 0
         attractions = attraction_result["output"].get("attractions", []) if attraction_result is not None else []
         weather_payload = weather_result["output"] if weather_result is not None else None
+        budget_optimization = budget_result["output"] if budget_result is not None else {}
+        itinerary_audit = audit_result["output"] if audit_result is not None else {}
 
         hotel_options = hotel_candidates[:2]
         estimated_hotel_cost = 0
@@ -149,6 +155,25 @@ class AgentService:
         food_cost = budget_breakdown["food"]
         estimated_ticket_cost = budget_breakdown["tickets"]
         transport_cost = budget_breakdown["transport"]
+        if budget_optimization:
+            optimized_breakdown = budget_optimization.get("budget_breakdown")
+            if isinstance(optimized_breakdown, dict) and optimized_breakdown:
+                budget_breakdown = {
+                    "transport": int(optimized_breakdown.get("transport", transport_cost) or 0),
+                    "accommodation": int(optimized_breakdown.get("accommodation", estimated_hotel_cost) or 0),
+                    "food": int(optimized_breakdown.get("food", food_cost) or 0),
+                    "tickets": int(optimized_breakdown.get("tickets", estimated_ticket_cost) or 0),
+                    **({"experience": int(optimized_breakdown.get("experience", 0) or 0)} if optimized_breakdown.get("experience") else {}),
+                    **({"buffer": int(optimized_breakdown.get("buffer", 0) or 0)} if optimized_breakdown.get("buffer") else {}),
+                }
+                total_budget = int(budget_optimization.get("total_estimated") or sum(budget_breakdown.values()))
+                estimated_hotel_cost = budget_breakdown["accommodation"]
+                food_cost = budget_breakdown["food"]
+                estimated_ticket_cost = budget_breakdown["tickets"]
+                transport_cost = budget_breakdown["transport"]
+            selected_hotel = budget_optimization.get("selected_hotel")
+            if isinstance(selected_hotel, dict) and selected_hotel.get("name"):
+                hotel_options = self._prioritize_selected_hotel(hotel_options=hotel_options, selected_hotel=selected_hotel)
         food_recommendations = self._build_food_recommendations(
             attractions=attractions,
             preferences=constraints["preferences"],
@@ -180,6 +205,10 @@ class AgentService:
             budget_policy=constraints.get("budget_policy"),
             target_budget=constraints.get("target_budget"),
         )
+        budget_insights = [
+            *self._build_budget_optimizer_insights(budget_optimization=budget_optimization),
+            *budget_insights,
+        ]
         trip_tips = self._build_trip_tips(
             constraints=constraints,
             weather=weather_payload,
@@ -218,6 +247,7 @@ class AgentService:
                 "food": food_cost,
                 "tickets": estimated_ticket_cost,
                 **({"experience": budget_breakdown["experience"]} if budget_breakdown.get("experience") else {}),
+                **({"buffer": budget_breakdown["buffer"]} if budget_breakdown.get("buffer") else {}),
             },
             "days": route_days,
             "weather": [weather_payload] if weather_payload is not None else [],
@@ -228,6 +258,8 @@ class AgentService:
             "dailyGuide": daily_guide,
             "stayAdvice": stay_advice,
             "budgetInsights": budget_insights,
+            "budgetOptimization": budget_optimization,
+            "itineraryAudit": itinerary_audit,
             "tripTips": trip_tips,
             "planHighlights": plan_highlights,
             "planningNarrative": planning_narrative,
@@ -251,6 +283,31 @@ class AgentService:
         pace_aligned = constraints["pace"] != "intensive" or constraints["days"] >= 2
         weather_result = self._tool_result(tool_results, self.TOOL_NAME_MAP["weather"])
         weather_summary = weather_result["output"]["summary"] if weather_result is not None else "未查询天气"
+        audit_result = self._tool_result(tool_results, self.TOOL_NAME_MAP["audit"])
+        if audit_result is not None:
+            audit_payload = audit_result["output"]
+            final_status = "approved" if audit_payload.get("safe_to_present") else "needs_review"
+            return AgentExecutionResult(
+                name="reviewer_agent",
+                summary=str(audit_payload.get("summary") or "已完成行程一致性审计。"),
+                payload={
+                    "within_budget": not any(
+                        item.get("name") == "budget_within_limit"
+                        for item in audit_payload.get("issues", [])
+                    ),
+                    "pace_aligned": not any(
+                        item.get("name") == "pace_density_aligned"
+                        for item in [*audit_payload.get("issues", []), *audit_payload.get("warnings", [])]
+                    ),
+                    "weather_summary": weather_summary,
+                    "final_status": final_status,
+                    "audit_status": audit_payload.get("audit_status"),
+                    "validation_checks": audit_payload.get("passed_checks", []),
+                    "issues": audit_payload.get("issues", []),
+                    "warnings": audit_payload.get("warnings", []),
+                    "recommendations": audit_payload.get("recommendations", []),
+                },
+            )
         summary = "方案已通过预算与节奏校验。" if within_budget and pace_aligned else "方案需要进一步人工调整。"
         payload = {
             "within_budget": within_budget,
@@ -267,6 +324,45 @@ class AgentService:
 
     def _tool_result(self, tool_results: list[dict[str, Any]], tool_name: str) -> dict[str, Any] | None:
         return next((item for item in tool_results if item["tool_name"] == tool_name), None)
+
+    def _prioritize_selected_hotel(
+        self,
+        *,
+        hotel_options: list[dict[str, Any]],
+        selected_hotel: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        selected_name = selected_hotel.get("name")
+        if not selected_name:
+            return hotel_options
+        merged_selected = dict(selected_hotel)
+        rest = [item for item in hotel_options if item.get("name") != selected_name]
+        existing = next((item for item in hotel_options if item.get("name") == selected_name), None)
+        if existing is not None:
+            merged_selected = {**existing, **selected_hotel}
+        return [merged_selected, *rest][:2]
+
+    def _build_budget_optimizer_insights(self, *, budget_optimization: dict[str, Any]) -> list[dict[str, Any]]:
+        if not budget_optimization:
+            return []
+        insights: list[dict[str, Any]] = []
+        status = budget_optimization.get("budget_status")
+        if status:
+            insights.append(
+                {
+                    "label": "预算优化",
+                    "value": str(status),
+                    "detail": "已通过预算优化 Skill 对交通、住宿、餐饮、门票和体验预算做了拆分。",
+                }
+            )
+        for recommendation in budget_optimization.get("recommendations", [])[:2]:
+            insights.append(
+                {
+                    "label": "优化建议",
+                    "value": "建议",
+                    "detail": str(recommendation),
+                }
+            )
+        return insights
 
     def _apply_budget_policy(
         self,
