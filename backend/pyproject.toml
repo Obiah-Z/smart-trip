@@ -23,3 +23,11 @@ packages = ["app"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = [
+  "-m",
+  "not slow"
+]
+markers = [
+  "integration: API-level tests that exercise FastAPI routes",
+  "slow: long-running snapshot rebuilds, timeout checks, or full-flow regression tests"
+]

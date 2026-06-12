@@ -1,6 +1,11 @@
 from pathlib import Path
 import runpy
 
+import pytest
+
+
+pytestmark = pytest.mark.slow
+
 
 def test_seed_mock_data_script_rebuilds_snapshots() -> None:
     script_path = Path(__file__).resolve().parents[2] / "scripts" / "seed_mock_data.py"

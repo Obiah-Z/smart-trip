@@ -1,3 +1,5 @@
+import pytest
+
 from app.skills.skill_registry import SkillRegistry
 from app.skills.skill_script_runner import SkillScriptRunner
 from app.skills.tool_service import ToolService
@@ -122,6 +124,7 @@ def test_tool_service_exposes_skill_metadata() -> None:
     assert any(item["skill_id"] == "knowledge.snapshot" for item in skills)
 
 
+@pytest.mark.slow
 def test_tool_service_sandbox_blocks_timeout_skill() -> None:
     service = ToolService(skill_registry=SkillRegistry(), script_runner=SkillScriptRunner())
 

@@ -3,9 +3,14 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
+os.environ["OPENAI_MODE"] = "mock"
+
 from app.db import repositories as repository_module
 from app.db import sqlite as sqlite_store
 from app.main import app
+
+
+pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 
 @pytest.fixture(autouse=True)
@@ -24,7 +29,6 @@ def isolated_storage(tmp_path, monkeypatch) -> None:
 
 
 def test_demo_plan_api_returns_pipeline() -> None:
-    os.environ["OPENAI_MODE"] = "mock"
     client = TestClient(app)
 
     response = client.post(
@@ -50,7 +54,6 @@ def test_demo_plan_api_returns_pipeline() -> None:
 
 
 def test_demo_plan_api_handles_negative_preferences() -> None:
-    os.environ["OPENAI_MODE"] = "mock"
     client = TestClient(app)
 
     response = client.post(
@@ -72,7 +75,6 @@ def test_demo_plan_api_handles_negative_preferences() -> None:
 
 
 def test_demo_plan_api_simple_attraction_query_does_not_trigger_route_plan() -> None:
-    os.environ["OPENAI_MODE"] = "mock"
     client = TestClient(app)
 
     response = client.post(
