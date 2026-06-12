@@ -95,11 +95,16 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  markerVisuals: {
+    type: Object,
+    default: () => ({}),
+  },
 })
 
 const mapContainerRef = ref(null)
 const mapInstance = shallowRef(null)
 const currentOverlays = shallowRef([])
+const hoverInfoWindow = shallowRef(null)
 const resizeObserver = shallowRef(null)
 const loading = ref(true)
 const errorMessage = ref('')
@@ -114,6 +119,7 @@ const displayMode = computed(() => props.displayMode || 'planning')
 const displayModeLabel = computed(() => (displayMode.value === 'consulting' ? '咨询地图' : '行程地图'))
 const compact = computed(() => props.compact)
 const focusOnly = computed(() => props.focusOnly)
+const markerVisuals = computed(() => props.markerVisuals || {})
 const displayedRoutes = computed(() => {
   if (selectedDay.value === 'all') return routes.value
   return routes.value.filter((item) => item.day === selectedDay.value)
@@ -180,6 +186,7 @@ watch(
 
 onBeforeUnmount(() => {
   clearOverlays()
+  closeHoverInfoWindow()
   teardownResizeObserver()
   if (mapInstance.value) {
     mapInstance.value.destroy()
@@ -242,6 +249,12 @@ function renderOverlays() {
       })
       infoWindow.open(mapInstance.value, marker.getPosition())
     })
+    marker.on('mouseover', () => {
+      openHoverInfoWindow({ AMap, item, marker })
+    })
+    marker.on('mouseout', () => {
+      closeHoverInfoWindow()
+    })
     overlays.push(marker)
   }
 
@@ -301,8 +314,46 @@ function resizeMap() {
 
 function clearOverlays() {
   if (!mapInstance.value || !currentOverlays.value.length) return
+  closeHoverInfoWindow()
   mapInstance.value.remove(currentOverlays.value)
   currentOverlays.value = []
+}
+
+function openHoverInfoWindow({ AMap, item, marker }) {
+  const visual = markerVisuals.value[item.name]
+  if (!visual?.imageUrl || !mapInstance.value) return
+  closeHoverInfoWindow()
+  hoverInfoWindow.value = new AMap.InfoWindow({
+    isCustom: true,
+    offset: new AMap.Pixel(0, -24),
+    content: buildHoverPreviewContent(item, visual),
+  })
+  hoverInfoWindow.value.open(mapInstance.value, marker.getPosition())
+}
+
+function closeHoverInfoWindow() {
+  if (!hoverInfoWindow.value) return
+  hoverInfoWindow.value.close()
+  hoverInfoWindow.value = null
+}
+
+function buildHoverPreviewContent(item, visual) {
+  const srcset = visual.imageSrcSet ? ` srcset="${escapeHtml(visual.imageSrcSet)}" sizes="120px"` : ''
+  return `
+    <div class="map-marker-preview map-marker-preview-amap">
+      <img
+        src="${escapeHtml(visual.imageUrl)}"
+        ${srcset}
+        alt="${escapeHtml(visual.imageAlt || `${item.name} 图片`)}"
+        loading="lazy"
+        decoding="async"
+      />
+      <div>
+        <strong>${escapeHtml(item.name)}</strong>
+        <span>${escapeHtml(item.area || item.typeLabel || '核心城区')}</span>
+      </div>
+    </div>
+  `
 }
 
 function buildMarkerContent(item) {

@@ -160,6 +160,7 @@
                 :data="mapData"
                 :selected-day="day.day"
                 :display-mode="mapDisplayMode"
+                :marker-visuals="mapMarkerVisuals"
                 :compact="true"
                 :focus-only="true"
                 @fallback="handleAmapFallback"
@@ -187,6 +188,7 @@
                 :data="mapData"
                 :selected-day="day.day"
                 :display-mode="mapDisplayMode"
+                :marker-visuals="mapMarkerVisuals"
                 :compact="true"
                 :focus-only="true"
                 @fallback="handleAmapFallback"
@@ -342,6 +344,7 @@
               :data="mapData"
               :selected-day="selectedMapDay"
               :display-mode="mapDisplayMode"
+              :marker-visuals="mapMarkerVisuals"
               :compact="true"
               @fallback="handleAmapFallback"
             />
@@ -559,6 +562,13 @@ const heroImageError = computed(() => '')
 const attractionVisuals = computed(() => visualAssets.value.attractions || {})
 const hotelVisuals = computed(() => visualAssets.value.hotels || {})
 const foodVisuals = computed(() => visualAssets.value.foods || {})
+const mapMarkerVisuals = computed(() => {
+  const visualMap = {}
+  collectMapMarkerVisuals(visualMap, attractionVisuals.value, '景点')
+  collectMapMarkerVisuals(visualMap, hotelVisuals.value, '住宿')
+  collectMapMarkerVisuals(visualMap, foodVisuals.value, '餐饮')
+  return visualMap
+})
 
 const hotelShowcaseCards = computed(() => hotelOptions.value.slice(0, 3).map((item, index) => buildHotelCard(item, index)))
 const attractionShowcaseCards = computed(() => attractionRecommendations.value.slice(0, 6).map((item, index) => buildAttractionCard(item, index)))
@@ -866,6 +876,22 @@ function mapTagList(tags, limit = 4) {
 function resolveVisualImageUrl(visual) {
   if (!visual) return ''
   return resolveAssetUrl(visual.thumbnailUrl || visual.url || visual.imageUrl || '')
+}
+
+function collectMapMarkerVisuals(target, source, fallbackLabel) {
+  if (!source || typeof source !== 'object') return
+  for (const [rawName, visual] of Object.entries(source)) {
+    const name = String(rawName || '').trim()
+    if (!name || !visual) continue
+    const imageUrl = resolveVisualImageUrl(visual)
+    if (!imageUrl) continue
+    target[name] = {
+      imageUrl,
+      imageSrcSet: resolveVisualImageSrcSet(visual),
+      imageAlt: `${name} ${fallbackLabel}图片`,
+      label: visual.label || fallbackLabel,
+    }
+  }
 }
 
 function resolveVisualImageSrcSet(visual) {

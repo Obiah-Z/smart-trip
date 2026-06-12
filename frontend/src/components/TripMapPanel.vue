@@ -73,7 +73,16 @@
           />
         </g>
 
-        <g v-for="item in visibleProjectedMarkers" :key="item.id">
+        <g
+          v-for="item in visibleProjectedMarkers"
+          :key="item.id"
+          class="map-marker-hit-area"
+          @mouseenter="hoveredMarkerId = item.id"
+          @mouseleave="hoveredMarkerId = ''"
+          @focusin="hoveredMarkerId = item.id"
+          @focusout="hoveredMarkerId = ''"
+          tabindex="0"
+        >
           <line
             class="map-marker-guide"
             :class="{ 'map-marker-guide-muted': !item.isActive }"
@@ -99,6 +108,25 @@
           </g>
         </g>
       </svg>
+      <div
+        v-if="hoveredMarkerVisual"
+        class="map-marker-preview"
+        :class="{ 'map-marker-preview-compact': compact }"
+        :style="hoveredMarkerPreviewStyle"
+      >
+        <img
+          :src="hoveredMarkerVisual.imageUrl"
+          :srcset="hoveredMarkerVisual.imageSrcSet || undefined"
+          sizes="120px"
+          :alt="hoveredMarkerVisual.imageAlt"
+          loading="lazy"
+          decoding="async"
+        />
+        <div>
+          <strong>{{ hoveredMarkerVisual.name }}</strong>
+          <span>{{ hoveredMarkerVisual.area }}</span>
+        </div>
+      </div>
     </div>
 
     <div class="map-marker-list" :class="{ 'map-marker-list-compact': compact }" v-if="topMarkers.length">
@@ -117,7 +145,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   data: {
@@ -140,8 +168,13 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  markerVisuals: {
+    type: Object,
+    default: () => ({}),
+  },
 })
 
+const hoveredMarkerId = ref('')
 const mapData = computed(() => props.data || null)
 const markers = computed(() => mapData.value?.markers || [])
 const routes = computed(() => mapData.value?.routes || [])
@@ -152,6 +185,7 @@ const displayMode = computed(() => props.displayMode || 'planning')
 const displayModeLabel = computed(() => (displayMode.value === 'consulting' ? '咨询地图' : '行程地图'))
 const compact = computed(() => props.compact)
 const focusOnly = computed(() => props.focusOnly)
+const markerVisuals = computed(() => props.markerVisuals || {})
 
 const projectedMarkers = computed(() => {
   if (!bounds.value) return []
@@ -188,6 +222,33 @@ const displayedRoutes = computed(() => {
 })
 const activeMarkers = computed(() => projectedMarkers.value.filter((item) => item.isActive))
 const visibleProjectedMarkers = computed(() => (focusOnly.value ? activeMarkers.value : projectedMarkers.value))
+const hoveredMarker = computed(() => visibleProjectedMarkers.value.find((item) => item.id === hoveredMarkerId.value) || null)
+const hoveredMarkerVisual = computed(() => {
+  const marker = hoveredMarker.value
+  if (!marker) return null
+  const visual = markerVisuals.value[marker.name]
+  if (!visual?.imageUrl) return null
+  return {
+    ...visual,
+    name: marker.name,
+    area: marker.area || marker.typeLabel || '核心城区',
+  }
+})
+const hoveredMarkerPreviewStyle = computed(() => {
+  const marker = hoveredMarker.value
+  if (!marker) return {}
+  const width = 1000
+  const height = 620
+  const left = `${(marker.x / width) * 100}%`
+  const topOffset = compact.value ? 104 : 118
+  const top = `${(Math.max(28, marker.y - topOffset) / height) * 100}%`
+  const translateX = marker.x > width - 190 ? '-96%' : marker.x < 190 ? '-4%' : '-50%'
+  return {
+    left,
+    top,
+    transform: `translate(${translateX}, 0)`,
+  }
+})
 const topMarkers = computed(() => {
   if (focusOnly.value) return activeMarkers.value.slice(0, compact.value ? 4 : 6)
   if (!activeMarkers.value.length) return projectedMarkers.value.slice(0, compact.value ? 4 : 6)
