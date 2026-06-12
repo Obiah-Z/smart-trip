@@ -11,6 +11,7 @@ from app.db.sqlite import (
     get_connection,
     load_json_records,
     save_json_records,
+    sync_sqlite_snapshots,
     sqlite_available,
 )
 
@@ -45,6 +46,7 @@ class MemoryRepository:
                     (user_id, key, value, scope, now),
                 )
                 connection.commit()
+                sync_sqlite_snapshots(connection=connection)
             return
 
         records = load_json_records(MEMORY_PATH)
@@ -76,6 +78,7 @@ class SessionRunRepository:
                     (run_id, session_id, user_id, request_text, payload, now),
                 )
                 connection.commit()
+                sync_sqlite_snapshots(connection=connection)
             return
 
         records = load_json_records(SESSION_RUNS_PATH)
@@ -175,6 +178,8 @@ class SessionRunRepository:
                     (session_id,),
                 )
                 connection.commit()
+                if cursor.rowcount > 0:
+                    sync_sqlite_snapshots(connection=connection)
             return cursor.rowcount > 0
 
         records = load_json_records(SESSION_RUNS_PATH)

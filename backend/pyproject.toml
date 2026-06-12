@@ -1,7 +1,7 @@
 [project]
 name = "smart-trip-backend"
 version = "0.1.0"
-description = "Minimal smart trip demo project"
+description = "Smart trip backend service"
 requires-python = ">=3.10"
 dependencies = [
   "fastapi>=0.115.0,<1.0.0",
@@ -9,7 +9,8 @@ dependencies = [
   "pydantic>=2.7.0,<3.0.0",
   "pytest>=8.0.0,<9.0.0",
   "httpx>=0.27.0,<1.0.0",
-  "Pillow>=10.4.0,<12.0.0"
+  "Pillow>=10.4.0,<12.0.0",
+  "pysqlite3-binary>=0.5.4,<1.0.0"
 ]
 
 [build-system]

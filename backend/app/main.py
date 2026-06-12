@@ -72,7 +72,7 @@ def create_app() -> FastAPI:
         graph_expansion_service=graph_expansion_service,
     )
 
-    app = FastAPI(title="Smart Trip Demo API")
+    app = FastAPI(title="Smart Trip API")
     generated_media_dir = Path(settings.image_output_dir)
     generated_media_dir.mkdir(parents=True, exist_ok=True)
     app.add_middleware(

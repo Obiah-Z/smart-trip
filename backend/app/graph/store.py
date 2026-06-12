@@ -106,6 +106,12 @@ class GraphStore:
                 FROM graph_nodes
                 """
             ).fetchall()
+            if not rows:
+                return self._expand_entity_from_records(
+                    entity=normalized,
+                    nodes=self._load_snapshot_nodes(),
+                    edges=self._load_snapshot_edges(),
+                )
             matched_node_id = None
             for row in rows:
                 aliases = json.loads(row["aliases_json"])

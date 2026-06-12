@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from fastapi import APIRouter, HTTPException
 
+from app.db.sqlite import get_storage_status
 from app.image_generation.client import ImageGenerationError
 from app.models.schemas import (
     AttractionImageGenerateRequest,
@@ -71,6 +72,10 @@ def build_router(
     @router.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @router.get("/api/debug/storage")
+    def storage_status() -> dict:
+        return get_storage_status()
 
     @router.post("/api/demo/plan", response_model=DemoPlanResponse)
     def demo_plan(request: DemoPlanRequest) -> DemoPlanResponse:

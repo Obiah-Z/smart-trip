@@ -203,6 +203,7 @@ def reset_stores() -> None:
     save_json_records(SESSION_RUNS_PATH, [])
 
     if sqlite_available():
+        init_db()
         with get_connection() as connection:
             connection.execute("DELETE FROM user_memory")
             connection.execute("DELETE FROM session_runs")
@@ -218,7 +219,7 @@ def export_sqlite_snapshots() -> None:
             "SELECT user_id, key, value, scope, updated_at FROM user_memory ORDER BY user_id ASC, key ASC"
         ).fetchall()
         session_rows = connection.execute(
-            "SELECT session_id, user_id, request_text, response_json, created_at FROM session_runs ORDER BY created_at ASC"
+            "SELECT run_id, session_id, user_id, request_text, response_json, created_at FROM session_runs ORDER BY created_at ASC"
         ).fetchall()
 
     save_json_records(MEMORY_PATH, [dict(row) for row in memory_rows])
