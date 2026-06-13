@@ -52,6 +52,21 @@ def test_plan_api_generates_core_itinerary_pipeline() -> None:
     assert payload["final_plan"]["summary"]["destinationCity"] == "杭州"
     assert payload["final_plan"]["summary"]["days"] == 3
     assert any(item["skill_id"] == "route.plan" for item in payload["selected_skills"])
+    runtime_context = payload["assembled_context"]["runtime_context"]
+    assert runtime_context["workflow_engine"] == "langgraph"
+    trace_nodes = [item["node"] for item in runtime_context["workflow_trace"]]
+    assert trace_nodes == [
+        "prepare_request",
+        "resolve_constraints",
+        "load_memory",
+        "retrieve_knowledge",
+        "run_skills",
+        "assemble_context",
+        "run_agents",
+        "review_plan",
+        "enrich_and_summarize",
+        "persist_planning_response",
+    ]
 
 
 def test_plan_api_weather_query_bypasses_route_planning() -> None:
@@ -68,6 +83,13 @@ def test_plan_api_weather_query_bypasses_route_planning() -> None:
     assert selected_ids == ["weather.lookup"]
     assert payload["agent_outputs"] == []
     assert payload["final_plan"]["consultingType"] == "weather"
+    trace_nodes = [
+        item["node"]
+        for item in payload["assembled_context"]["runtime_context"]["workflow_trace"]
+    ]
+    assert "build_consulting_response" in trace_nodes
+    assert "assemble_context" not in trace_nodes
+    assert "run_agents" not in trace_nodes
 
 
 def test_plan_api_missing_destination_requests_clarification() -> None:
@@ -84,6 +106,15 @@ def test_plan_api_missing_destination_requests_clarification() -> None:
     assert payload["final_plan"]["consultingType"] == "clarification"
     assert payload["final_plan"]["missingFields"] == ["destination"]
     assert payload["selected_skills"] == []
+    trace_nodes = [
+        item["node"]
+        for item in payload["assembled_context"]["runtime_context"]["workflow_trace"]
+    ]
+    assert trace_nodes == [
+        "prepare_request",
+        "resolve_constraints",
+        "build_clarification_response",
+    ]
 
 
 def test_plan_api_resumes_after_days_clarification() -> None:
@@ -157,3 +188,35 @@ def test_plan_api_followup_excluded_spot_replans_without_reasking_days() -> None
 
     all_activities = [activity for day in payload["final_plan"]["days"] for activity in day.get("activities", [])]
     assert "故宫" not in all_activities
+
+
+def test_plan_api_langgraph_repair_node_cleans_excluded_spot_from_final_plan() -> None:
+    client = TestClient(app)
+
+    first_payload = post_plan(
+        client,
+        user_id="smoke-langgraph-repair-user",
+        message="帮我规划一个杭州三日游，预算3000，节奏轻松一点，酒店尽量安静",
+    )
+    payload = post_plan(
+        client,
+        user_id="smoke-langgraph-repair-user",
+        session_id=first_payload["session_id"],
+        message="不想去西湖",
+    )
+
+    trace_nodes = [
+        item["node"]
+        for item in payload["assembled_context"]["runtime_context"]["workflow_trace"]
+    ]
+    all_activities = [
+        activity
+        for day in payload["final_plan"]["days"]
+        for activity in day.get("activities", [])
+    ]
+
+    assert "repair_plan" in trace_nodes
+    assert payload["final_plan"]["workflowRepair"]["applied"] is True
+    assert "西湖" not in all_activities
+    assert "断桥" not in all_activities
+    assert payload["final_plan"]["workflowRepair"]["remainingIssues"] == []

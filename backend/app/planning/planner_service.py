@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import uuid
 from typing import Any
 
 from app.agents.agent_service import AgentService
@@ -18,6 +17,7 @@ from app.presentation.geo_service import GeoPresentationService
 from app.retrieval.retrieval_service import RetrievalService
 from app.skills.skill_selection_service import SkillSelectionService
 from app.skills.tool_service import ToolService
+from app.workflow.graph import TripPlanningWorkflow
 
 
 class PlannerService:
@@ -93,220 +93,10 @@ class PlannerService:
         self._image_generation_service = image_generation_service
         self._graph_expansion_service = graph_expansion_service
         self._revision_intent_resolver = RevisionIntentResolver()
+        self._workflow = TripPlanningWorkflow(self)
 
     def run(self, *, user_id: str, session_id: str | None, message: str) -> dict[str, Any]:
-        slots = self._slot_extractor.extract(message)
-        active_session_id = session_id or self._resolve_implicit_session_id(
-            user_id=user_id,
-            message=message,
-            slots=slots,
-        )
-        resolved_session_id = active_session_id or f"session-{uuid.uuid4().hex[:8]}"
-        session_context = self._session_context_service.load(session_id=active_session_id)
-        revision_intent = self._revision_intent_resolver.analyze(
-            message=message,
-            slots=slots,
-            session_context=session_context,
-        )
-        effective_message = self._resolve_effective_message(
-            message=message,
-            slots=slots,
-            session_context=session_context,
-        )
-        structured_constraints = self._resolve_structured_constraints(
-            slots=slots,
-            session_context=session_context,
-            message=message,
-            revision_intent=revision_intent,
-        )
-        structured_constraints = self._expand_structured_constraints(structured_constraints=structured_constraints)
-        resolved_days = structured_constraints["days"]
-        resolved_budget = structured_constraints["budget"]
-        task_profile_model = self._resolve_task_profile(
-            message=effective_message,
-            slots=slots,
-            structured_constraints=structured_constraints,
-            session_context=session_context,
-            revision_intent=revision_intent,
-        )
-        session_context = {
-            **session_context,
-            "effective_structured_constraints": structured_constraints,
-            "revision_intent": revision_intent.to_dict(),
-        }
-        task_profile = {
-            "task_type": task_profile_model.task_type,
-            "complexity": task_profile_model.complexity,
-            "needs_rag": task_profile_model.needs_rag,
-            "needs_tools": task_profile_model.needs_tools,
-            "needs_multi_agent": task_profile_model.needs_multi_agent,
-            "intent_summary": task_profile_model.intent_summary,
-            "evidence": task_profile_model.evidence,
-        }
-        session_context = self._finalize_session_context(
-            session_context=session_context,
-            structured_constraints=structured_constraints,
-            message=message,
-        )
-
-        missing_fields = self._resolve_missing_fields(
-            task_profile=task_profile,
-            structured_constraints=structured_constraints,
-            session_context=session_context,
-        )
-        if missing_fields:
-            return self._build_clarification_response(
-                resolved_session_id=resolved_session_id,
-                user_id=user_id,
-                message=message,
-                task_profile=task_profile,
-                session_context=session_context,
-                structured_constraints=structured_constraints,
-                missing_fields=missing_fields,
-            )
-
-        memory_context_model = self._memory_service.load_context(
-            user_id=user_id,
-            short_term_state=structured_constraints,
-        )
-        memory_selection = self._memory_injection_service.select(
-            long_term_memory=memory_context_model.long_term_memory,
-            structured_constraints=structured_constraints,
-            user_input=message,
-        )
-        memory_context = {
-            "long_term_memory": memory_context_model.long_term_memory,
-            "relevant_long_term_memory": memory_selection["relevant_long_term_memory"],
-            "short_term_state": memory_context_model.short_term_state,
-            "selection_reasons": memory_selection["selection_reasons"],
-            "dropped_memory_count": memory_selection["dropped_memory_count"],
-        }
-
-        retrieval_context = (
-            self._retrieval_service.retrieve(
-                destination=structured_constraints["destination"],
-                preferences=structured_constraints["preferences"],
-                days=resolved_days,
-                budget=resolved_budget,
-                pace=structured_constraints["pace"],
-                user_input=effective_message,
-            )
-            if task_profile["needs_rag"]
-            else {
-                "query": "",
-                "query_rewrite": {"source": "none", "query": "", "query_terms": [], "focus_keywords": [], "steps": []},
-                "retrieval_steps": ["当前问题无需额外知识增强"],
-                "ranking_signals": [],
-                "retrieved_documents": [],
-                "injected_knowledge": [],
-            }
-        )
-
-        selected_skill_items = (
-            self._skill_selection_service.select(
-                user_input=effective_message,
-                structured_constraints=structured_constraints,
-                available_skills=self._tool_service.list_skill_definitions(),
-            )
-            if task_profile["needs_tools"]
-            else []
-        )
-
-        tool_results: list[dict[str, Any]] = []
-        selected_skills: list[dict[str, Any]] = []
-        for item in selected_skill_items:
-            payload = self._tool_service.build_payload(
-                skill_id=item.skill_id,
-                structured_constraints=structured_constraints,
-                tool_results=tool_results,
-            )
-            tool_result = self._tool_service.run_skill(skill_id=item.skill_id, payload=payload)
-            tool_results.append(tool_result)
-            selected_skills.append(
-                {
-                    "skill_id": item.skill_id,
-                    "display_name": tool_result["display_name"],
-                    "reason": item.reason,
-                    "source": item.source,
-                    "payload": payload,
-                }
-            )
-
-        if task_profile["task_type"] == "travel_consulting":
-            return self._build_consulting_response(
-                resolved_session_id=resolved_session_id,
-                user_id=user_id,
-                message=message,
-                task_profile=task_profile,
-                session_context=session_context,
-                structured_constraints=structured_constraints,
-                memory_context=memory_context,
-                retrieval_context=retrieval_context,
-                selected_skills=selected_skills,
-                tool_results=tool_results,
-            )
-
-        assembled_context = self._context_assembler.assemble(
-            user_input=message,
-            task_profile=task_profile,
-            session_context=session_context,
-            structured_constraints=structured_constraints,
-            memory_context=memory_context,
-            retrieval_context=retrieval_context,
-            selected_skills=selected_skills,
-            tool_results=tool_results,
-        )
-        agent_outputs = self._agent_service.run(
-            constraints=structured_constraints,
-            retrieval_context=retrieval_context,
-            tool_results=tool_results,
-            memory_context=memory_context,
-            task_profile=task_profile,
-        )
-        final_plan = next(item.payload for item in agent_outputs if item.name == "executor_agent")
-        final_plan = self._geo_presentation_service.enrich_final_plan(
-            final_plan=final_plan,
-            structured_constraints=structured_constraints,
-        )
-        final_plan = self._image_generation_service.enrich_plan_visual_assets(final_plan=final_plan)
-        llm_output = self._openai_client.generate_plan_summary(
-            assembled_context=assembled_context,
-            final_plan=final_plan,
-        )
-
-        memory_updates = self._memory_service.persist_preferences(
-            user_id=user_id,
-            preferences=structured_constraints["preferences"],
-            pace=structured_constraints["pace"],
-        )
-
-        response = {
-            "session_id": resolved_session_id,
-            "user_input": message,
-            "task_profile": task_profile,
-            "session_context": session_context,
-            "structured_constraints": structured_constraints,
-            "memory_context": memory_context,
-            "memory_updates": memory_updates,
-            "retrieval_context": retrieval_context,
-            "available_skills": self._tool_service.list_skills(),
-            "selected_skills": selected_skills,
-            "tool_results": tool_results,
-            "agent_outputs": [
-                {"agent": item.name, "summary": item.summary, "payload": item.payload}
-                for item in agent_outputs
-            ],
-            "assembled_context": assembled_context,
-            "final_plan": final_plan,
-            "llm_output": llm_output,
-        }
-        self._session_run_repository.save_run(
-            session_id=resolved_session_id,
-            user_id=user_id,
-            request_text=message,
-            response=response,
-        )
-        return response
+        return self._workflow.run(user_id=user_id, session_id=session_id, message=message)
 
     def _resolve_structured_constraints(
         self,

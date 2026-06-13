@@ -262,6 +262,7 @@
               :tool-results="result.tool_results"
               :agent-outputs="result.agent_outputs"
               :final-plan="result.final_plan"
+              :assembled-context="result.assembled_context"
             />
           </section>
         </section>

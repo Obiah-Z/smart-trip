@@ -3,9 +3,9 @@
     <div class="panel-header">
       <div>
         <p class="panel-kicker">Pipeline</p>
-        <h2>Stage Trace</h2>
+        <h2>{{ traceTitle }}</h2>
       </div>
-      <span class="badge">{{ completedStageCount }} / {{ stageTrace.length }} stages</span>
+      <span class="badge">{{ traceEngineLabel }} · {{ completedStageCount }} / {{ stageTrace.length }} stages</span>
     </div>
 
     <div class="stage-trace-list">
@@ -158,6 +158,7 @@ const props = defineProps({
   toolResults: { type: Array, required: true },
   agentOutputs: { type: Array, required: true },
   finalPlan: { type: Object, default: () => ({}) },
+  assembledContext: { type: Object, default: () => ({}) },
 })
 
 const activeTab = ref('selection')
@@ -184,6 +185,11 @@ const tabs = computed(() => {
 })
 const activeTabLabel = computed(() => tabs.value.find((tab) => tab.key === activeTab.value)?.label || 'Skill 选择')
 const completedStageCount = computed(() => stageTrace.value.filter((stage) => stage.status === 'done').length)
+const runtimeContext = computed(() => props.assembledContext?.runtime_context || {})
+const langGraphTrace = computed(() => runtimeContext.value.workflow_trace || [])
+const hasLangGraphTrace = computed(() => langGraphTrace.value.length > 0)
+const traceTitle = computed(() => hasLangGraphTrace.value ? 'LangGraph Trace' : 'Stage Trace')
+const traceEngineLabel = computed(() => runtimeContext.value.workflow_engine || 'derived')
 const retrievalModeLabel = computed(() => {
   const mode = retrievedDocuments.value[0]?.retrieval_mode || 'bm25'
   if (mode === 'hybrid') return 'Hybrid 检索'
@@ -205,6 +211,18 @@ const outputKind = computed(() => {
   return 'unknown'
 })
 const stageTrace = computed(() => {
+  if (hasLangGraphTrace.value) {
+    return langGraphTrace.value.map((item, index) => ({
+      key: item.node || `workflow-${index}`,
+      order: String(index + 1).padStart(2, '0'),
+      label: formatWorkflowNodeLabel(item.node),
+      status: normalizeStageStatus(item.status),
+      statusLabel: item.status || 'unknown',
+      summary: item.summary || '该 LangGraph 节点未返回摘要。',
+      meta: workflowMetadataItems(item.metadata),
+    }))
+  }
+
   const routeDone = Boolean(props.taskProfile?.task_type)
   const shortTermCount = Object.keys(memoryContextFields.value).length
   const relevantMemoryCount = props.memoryContext?.relevant_long_term_memory?.length || 0
@@ -352,5 +370,38 @@ function boolMeta(label, value) {
   if (value === true) return `${label}:true`
   if (value === false) return `${label}:false`
   return ''
+}
+
+function formatWorkflowNodeLabel(value) {
+  const labels = {
+    prepare_request: 'Prepare Request',
+    resolve_constraints: 'Resolve Constraints',
+    build_clarification_response: 'Clarification Response',
+    load_memory: 'Load Memory',
+    retrieve_knowledge: 'Retrieve Knowledge',
+    run_skills: 'Run Skills',
+    build_consulting_response: 'Consulting Response',
+    assemble_context: 'Assemble Context',
+    run_agents: 'Run Agents',
+    enrich_and_summarize: 'Enrich & Summarize',
+    persist_planning_response: 'Persist Response',
+  }
+  return labels[value] || value || 'Workflow Node'
+}
+
+function normalizeStageStatus(value) {
+  if (['done', 'bypass', 'warn', 'idle'].includes(value)) return value
+  return value ? 'done' : 'idle'
+}
+
+function workflowMetadataItems(metadata) {
+  if (!metadata || typeof metadata !== 'object') return []
+  return Object.entries(metadata)
+    .flatMap(([key, value]) => {
+      if (Array.isArray(value)) return value.length ? [`${key}:${value.join('/')}`] : []
+      if (value === null || value === undefined || value === '') return []
+      return [`${key}:${value}`]
+    })
+    .slice(0, 5)
 }
 </script>
