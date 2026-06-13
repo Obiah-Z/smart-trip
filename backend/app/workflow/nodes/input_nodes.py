@@ -8,10 +8,21 @@ from app.workflow.trace import append_trace, attach_workflow_trace
 
 
 class InputNodes:
+    """输入与路由前置节点。
+
+    这一组节点负责把自然语言请求转成后续节点可消费的结构化状态，包括槽位、会话、
+    追问意图、任务类型和缺失字段。它们不做 RAG/Tool/Agent 执行。
+    """
+
     def __init__(self, planner_service: Any) -> None:
         self._planner_service = planner_service
 
     def prepare_request(self, state: TripPlanningState) -> dict[str, Any]:
+        """提取槽位并确定本轮应该挂靠的 session。
+
+        如果前端没有显式传 session_id，但用户输入明显是“继续修改上一份规划”，这里会尝试
+        自动恢复最近一次规划会话，避免追问时丢失目的地/天数等基线条件。
+        """
         service = self._planner_service
         message = state["message"]
         user_id = state["user_id"]
@@ -41,6 +52,11 @@ class InputNodes:
         }
 
     def resolve_constraints(self, state: TripPlanningState) -> dict[str, Any]:
+        """合并当前输入、历史会话和修订意图，得到本轮有效约束。
+
+        这是任务路由前最关键的节点：它决定本轮是缺信息需要澄清、简单咨询可轻量回答，
+        还是需要进入完整旅行规划链路。
+        """
         service = self._planner_service
         message = state["message"]
         slots = state["slots"]
@@ -117,6 +133,7 @@ class InputNodes:
         }
 
     def build_clarification_response(self, state: TripPlanningState) -> dict[str, Any]:
+        """生成澄清问题并结束本轮图执行。"""
         service = self._planner_service
         response = service._build_clarification_response(
             resolved_session_id=state["resolved_session_id"],

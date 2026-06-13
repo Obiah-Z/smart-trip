@@ -9,6 +9,8 @@ from typing import Any
 
 @dataclass(frozen=True)
 class SkillDefinition:
+    """从 SKILL.md 解析出的可执行 Skill 元数据。"""
+
     skill_id: str
     display_name: str
     description: str
@@ -25,6 +27,8 @@ class SkillDefinition:
 
 
 class SkillRegistry:
+    """加载 skills/public 下的 SKILL.md 与配套脚本。"""
+
     def __init__(self) -> None:
         self._root = Path(__file__).resolve().parents[3]
         self._skills_root = self._root / "skills" / "public"
@@ -35,6 +39,7 @@ class SkillRegistry:
         return list(self._skills)
 
     def list_skills(self) -> list[dict[str, Any]]:
+        """返回可 JSON 序列化的 Skill 列表，供 API 和调试视图使用。"""
         return [
             {
                 "skill_id": skill.skill_id,
@@ -58,6 +63,7 @@ class SkillRegistry:
         return self._by_id[skill_id]
 
     def _load_skills(self) -> list[SkillDefinition]:
+        """扫描 Skill 目录，忽略缺少 scripts/run.py 的不完整 Skill。"""
         skills: list[SkillDefinition] = []
         for doc_path in sorted(self._skills_root.glob("*/SKILL.md")):
             metadata, body = self._read_skill_doc(doc_path)
@@ -87,6 +93,7 @@ class SkillRegistry:
         return sorted(skills, key=lambda item: (item.priority, item.skill_id))
 
     def _read_skill_doc(self, doc_path: Path) -> tuple[dict[str, Any], str]:
+        """读取 SKILL.md 的简化 frontmatter 和正文。"""
         text = doc_path.read_text(encoding="utf-8")
         if not text.startswith("---\n"):
             return {}, text
@@ -107,6 +114,7 @@ class SkillRegistry:
         return metadata, body
 
     def _parse_frontmatter_value(self, raw_value: str) -> Any:
+        """解析 frontmatter 中的标量、数组和对象。"""
         if raw_value == "":
             return ""
         if raw_value[0] in "[{":
@@ -122,6 +130,7 @@ class SkillRegistry:
         return raw_value
 
     def _extract_usage_examples(self, body: str) -> list[str]:
+        """从 When to Use 段落抽取示例，辅助 Skill 选择和调试展示。"""
         heading = "## When to Use"
         if heading not in body:
             return []

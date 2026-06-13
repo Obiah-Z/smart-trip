@@ -6,6 +6,11 @@ from typing import Any
 
 
 def build_audit_response(*, payload: dict[str, Any]) -> dict[str, Any]:
+    """对工具链生成的行程做确定性审计。
+
+    该 Skill 主要服务复杂规划：检查天数、排除景点、住宿、预算、节奏密度和天气上下文。
+    它输出 issues/warnings，后续 AgentService 和 LangGraph Reviewer 会继续整合这些结果。
+    """
     destination = str(payload.get("destination", "")).strip()
     requested_days = _coerce_int(payload.get("days"), default=0, minimum=0, maximum=30)
     budget = _coerce_int(payload.get("budget"), default=0, minimum=0, maximum=500000)
@@ -71,6 +76,7 @@ def _as_dict_list(value: Any) -> list[dict[str, Any]]:
 
 
 def _check_day_count(*, requested_days: int, route_days: list[dict[str, Any]]) -> dict[str, Any]:
+    """检查路线天数是否匹配用户已确认天数。"""
     actual_days = len(route_days)
     passed = requested_days > 0 and actual_days == requested_days
     return {
@@ -84,6 +90,7 @@ def _check_day_count(*, requested_days: int, route_days: list[dict[str, Any]]) -
 
 
 def _check_exclusions(*, route_days: list[dict[str, Any]], excluded_attractions: list[str]) -> dict[str, Any]:
+    """检查路线中是否仍出现用户明确排除的景点或区域。"""
     if not excluded_attractions:
         return {
             "name": "excluded_attractions_absent",
@@ -115,6 +122,7 @@ def _check_exclusions(*, route_days: list[dict[str, Any]], excluded_attractions:
 
 
 def _check_hotel(*, days: int, preferences: list[str], hotel_options: list[dict[str, Any]]) -> dict[str, Any]:
+    """检查多日行程是否有住宿候选，并校验安静住宿偏好。"""
     if days <= 1:
         return {
             "name": "hotel_available",
@@ -145,6 +153,7 @@ def _check_hotel(*, days: int, preferences: list[str], hotel_options: list[dict[
 
 
 def _check_budget(*, budget: int, budget_optimization: dict[str, Any]) -> dict[str, Any]:
+    """检查预算优化结果是否在用户预算范围内。"""
     if budget <= 0:
         return {
             "name": "budget_within_limit",
@@ -171,6 +180,7 @@ def _check_budget(*, budget: int, budget_optimization: dict[str, Any]) -> dict[s
 
 
 def _check_pace_density(*, pace: str, route_days: list[dict[str, Any]]) -> dict[str, Any]:
+    """根据每日活动数量粗略判断节奏密度是否匹配。"""
     if not route_days:
         return {
             "name": "pace_density_aligned",
@@ -196,6 +206,7 @@ def _check_pace_density(*, pace: str, route_days: list[dict[str, Any]]) -> dict[
 
 
 def _check_weather(*, weather: dict[str, Any]) -> dict[str, Any]:
+    """确认天气上下文是否可用。"""
     summary = str(weather.get("summary", "")).strip()
     return {
         "name": "weather_context_available",
@@ -206,6 +217,7 @@ def _check_weather(*, weather: dict[str, Any]) -> dict[str, Any]:
 
 
 def _build_summary(*, audit_status: str, issues: list[dict[str, Any]], warnings: list[dict[str, Any]]) -> str:
+    """把审计状态转换成一句摘要。"""
     if audit_status == "approved":
         return "方案通过核心一致性校验。"
     if audit_status == "approved_with_warnings":
@@ -219,6 +231,7 @@ def _build_recommendations(
     issues: list[dict[str, Any]],
     warnings: list[dict[str, Any]],
 ) -> list[str]:
+    """根据失败检查生成修复建议。"""
     if audit_status == "approved":
         return ["最终回答可以正常展示。"]
 
@@ -238,6 +251,7 @@ def _build_recommendations(
 
 
 def main() -> None:
+    """Skill 子进程入口：读取 payload 并输出审计 JSON。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--payload-json", required=True)
     args = parser.parse_args()

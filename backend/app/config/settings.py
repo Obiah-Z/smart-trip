@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 def _backend_root() -> Path:
+    """返回 backend 目录根路径。"""
     return Path(__file__).resolve().parents[2]
 
 
@@ -26,6 +27,7 @@ def default_knowledge_graph_vault_dir() -> str:
 
 
 def _read_int_env(name: str, default: int) -> int:
+    """读取整数环境变量，非法值回退默认值。"""
     raw_value = os.getenv(name)
     if raw_value is None:
         return default
@@ -36,6 +38,7 @@ def _read_int_env(name: str, default: int) -> int:
 
 
 def _read_csv_env(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
+    """读取逗号分隔环境变量。"""
     raw_value = os.getenv(name)
     if raw_value is None:
         return default
@@ -45,6 +48,12 @@ def _read_csv_env(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
 
 @dataclass(frozen=True)
 class Settings:
+    """应用运行配置。
+
+    配置按能力分组：主 LLM、图片生成、高德地图、RAG/Embedding、知识图谱和 CORS。
+    使用 frozen dataclass 可以避免运行中被意外修改。
+    """
+
     openai_mode: str = "mock"
     openai_base_url: str = "https://api.openai.com/v1"
     openai_api_key: str = ""
@@ -86,6 +95,10 @@ class Settings:
 
 
 def load_env_file() -> None:
+    """加载 backend/.env 风格配置。
+
+    使用 setdefault 是为了让 shell 中显式传入的环境变量优先级更高，便于部署和测试覆盖。
+    """
     env_path = Path(__file__).resolve().parents[2] / ".env"
     if not env_path.exists():
         return
@@ -98,6 +111,7 @@ def load_env_file() -> None:
 
 
 def load_settings() -> Settings:
+    """从环境变量构造 Settings。"""
     load_env_file()
     return Settings(
         openai_mode=os.getenv("OPENAI_MODE", "mock").strip().lower(),

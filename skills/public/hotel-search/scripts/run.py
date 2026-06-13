@@ -8,6 +8,10 @@ from app.mock.travel_engine import load_travel_data, select_hotels
 
 
 def build_hotel_response(*, data: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    """根据预算和住宿偏好筛选酒店候选。
+
+    输出的 hotels 会被 AgentService 用于住宿推荐、预算估算和 stayAdvice 生成。
+    """
     destination = str(payload.get("destination", "")).strip()
     budget, budget_warning = _coerce_budget(payload.get("budget", 3000))
     preferences = _as_string_list(payload.get("preferences", []))
@@ -50,6 +54,7 @@ def _as_string_list(value: Any) -> list[str]:
 
 
 def _coerce_budget(value: Any) -> tuple[int, str | None]:
+    """规范预算输入，避免异常或极端值传入住宿筛选逻辑。"""
     try:
         budget = int(value)
     except (TypeError, ValueError):
@@ -62,6 +67,7 @@ def _coerce_budget(value: Any) -> tuple[int, str | None]:
 
 
 def _selection_strategy(*, preferences: list[str]) -> dict[str, bool]:
+    """返回本次住宿筛选使用到的偏好信号。"""
     return {
         "budget_aware": True,
         "quiet_required": "quiet_hotel" in preferences,
@@ -72,6 +78,7 @@ def _selection_strategy(*, preferences: list[str]) -> dict[str, bool]:
 
 
 def main() -> None:
+    """Skill 子进程入口：读取 payload 并输出酒店候选 JSON。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--payload-json", required=True)
     args = parser.parse_args()

@@ -14,6 +14,12 @@ from app.rag.vector_index import LocalVectorIndex
 
 
 class LocalRAGRetriever:
+    """本地 RAG 检索器。
+
+    检索过程先按城市过滤，避免跨城市知识污染；再计算 BM25 和可选向量相似度；最后叠加
+    业务信号并做 topic 去重，让注入的知识既相关又覆盖路线、住宿、餐饮等不同维度。
+    """
+
     TOPIC_PREFERENCE_MAP = {
         "food": {"food", "local_food", "avoid_food", "avoid_local_food"},
         "trip_route": {"culture", "nature", "museum", "citywalk", "metro", "high_speed_rail", "family"},
@@ -63,6 +69,7 @@ class LocalRAGRetriever:
         days: int | None,
         top_k: int,
     ) -> list[dict[str, Any]]:
+        """在指定城市内检索并返回已重排、已去重的 chunk。"""
         normalized_query_terms = list(dict.fromkeys(tokenize(query) + [term.lower() for term in query_terms]))
         candidates = [document for document in self._documents if document["city"] == destination]
         vector_scores = self._vector_scores(query=query, candidates=candidates)
@@ -106,6 +113,7 @@ class LocalRAGRetriever:
         return self._select_diverse_documents(ranked_candidates=ranked_candidates, top_k=top_k)
 
     def _bm25_score(self, *, query_terms: list[str], document: dict[str, Any]) -> float:
+        """计算单个 chunk 的 BM25 分数。"""
         score = 0.0
         length = max(1, int(document["length"]))
         term_freqs: dict[str, int] = document["term_freqs"]
@@ -121,6 +129,7 @@ class LocalRAGRetriever:
         return score
 
     def _preference_bonus(self, *, topic: str, preferences: list[str]) -> int:
+        """根据结构化偏好给对应 topic 加权；避免类偏好会压低 food topic。"""
         matched = self.TOPIC_PREFERENCE_MAP.get(topic, set()).intersection(preferences)
         if not matched:
             return 0
@@ -149,6 +158,7 @@ class LocalRAGRetriever:
         ranked_candidates: list[dict[str, Any]],
         top_k: int,
     ) -> list[dict[str, Any]]:
+        """优先保证 topic 多样性，避免 Top K 全部来自同一主题。"""
         selected: list[dict[str, Any]] = []
         seen_topics: set[str] = set()
 
@@ -170,6 +180,7 @@ class LocalRAGRetriever:
         return selected
 
     def _load_vector_index(self, *, embedding_index_path: Path | None) -> LocalVectorIndex | None:
+        """加载可选向量索引；失败时返回 None，主流程自动退回 BM25。"""
         if embedding_index_path is None or not embedding_index_path.exists():
             return None
         try:
@@ -178,6 +189,7 @@ class LocalRAGRetriever:
             return None
 
     def _vector_scores(self, *, query: str, candidates: list[dict[str, Any]]) -> dict[str, float]:
+        """计算 query 与候选 chunk 的向量相似度；任何网络/格式异常都降级为空分数。"""
         if not candidates or self._vector_index is None or not self._vector_index.has_vectors():
             return {}
         if not self._embedding_client.enabled():
@@ -196,6 +208,7 @@ class LocalRAGRetriever:
         return scores
 
     def _hybrid_score(self, *, bm25_score: float, vector_score: float) -> float:
+        """融合词法分数和向量分数；无向量分数时保持纯 BM25。"""
         if vector_score <= 0:
             return bm25_score
         return bm25_score * 0.65 + vector_score * 6.0

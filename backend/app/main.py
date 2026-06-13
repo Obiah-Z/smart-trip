@@ -31,11 +31,17 @@ from app.skills.tool_service import ToolService
 
 
 def create_app() -> FastAPI:
+    """创建 FastAPI 应用并完成后端依赖装配。
+
+    这里使用显式依赖组装，而不是引入复杂 DI 容器：启动流程一眼可见，方便开发者定位
+    SQLite、知识图谱、Skill、RAG、LLM、地图/图片服务和 PlannerService 的连接关系。
+    """
     init_db()
     settings = load_settings()
     graph_store = GraphStore()
     graph_store.ensure_schema()
     if settings.knowledge_graph_enabled:
+        # 知识图谱用于扩展“不要去某景点”的别名/关联点位；vault 不存在时保持空图，不影响主链路。
         graph_loader = ObsidianGraphLoader()
         vault_dir = Path(settings.knowledge_graph_vault_dir)
         if vault_dir.exists():
@@ -82,6 +88,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    # 生成图片以静态文件方式暴露给前端；CachedStaticFiles 会处理浏览器缓存头。
     app.mount("/media/generated", CachedStaticFiles(directory=str(generated_media_dir)), name="generated-media")
     app.state.amap_geo_service = amap_geo_service
     app.include_router(

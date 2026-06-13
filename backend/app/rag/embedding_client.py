@@ -12,10 +12,17 @@ from app.config.settings import Settings
 
 
 class OpenAIEmbeddingClient:
+    """OpenAI-compatible embedding 客户端。
+
+    主生成模型和 embedding 模型解耦：生成侧可以使用其他厂商，RAG 向量索引仍可使用
+    OpenAI-compatible embedding 接口。调用失败会由检索层捕获并降级到 BM25。
+    """
+
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
 
     def enabled(self) -> bool:
+        """只有显式开启 openai embedding 且配置 API key 时才启用向量检索。"""
         return self._settings.embedding_mode == "openai" and bool(self._settings.embedding_api_key)
 
     @property
@@ -26,6 +33,7 @@ class OpenAIEmbeddingClient:
         return self.embed_texts([text])[0]
 
     def embed_texts(self, texts: list[str]) -> list[list[float]]:
+        """批量生成归一化向量，并带有限重试。"""
         if not texts:
             return []
         if not self.enabled():
@@ -58,6 +66,7 @@ class OpenAIEmbeddingClient:
         return self._parse_embeddings_response(data=data, expected_count=len(texts))
 
     def _post_embeddings(self, *, payload: dict[str, Any]) -> httpx.Response:
+        """发送 embedding 请求，并兼容用户环境里的代理配置异常。"""
         timeout = float(max(10, self._settings.embedding_timeout_seconds))
         if self._settings.embedding_trust_env:
             try:
@@ -88,6 +97,7 @@ class OpenAIEmbeddingClient:
 
     @contextmanager
     def _temporary_proxy_cleanup(self):
+        """临时移除 ALL_PROXY，规避部分 httpx/代理组合的 URL 解析问题。"""
         keys = ("ALL_PROXY", "all_proxy")
         original_values = {key: os.environ.get(key) for key in keys}
         try:
@@ -102,6 +112,7 @@ class OpenAIEmbeddingClient:
                     os.environ[key] = value
 
     def _parse_embeddings_response(self, *, data: dict[str, Any], expected_count: int) -> list[list[float]]:
+        """校验并按 index 顺序解析 embedding 响应。"""
         raw_items = data.get("data", [])
         if not isinstance(raw_items, list) or not raw_items:
             raise ValueError("Embedding response does not contain any vectors")
@@ -122,6 +133,7 @@ class OpenAIEmbeddingClient:
         return " ".join(text.replace("\n", " ").split())
 
     def _normalize_vector(self, vector: list[float]) -> list[float]:
+        """把向量归一化，后续余弦相似度可直接使用点积近似。"""
         norm = math.sqrt(sum(value * value for value in vector))
         if norm <= 0:
             return vector

@@ -7,10 +7,17 @@ from app.workflow.trace import append_trace
 
 
 class ContextNodes:
+    """Context 构建相关节点。
+
+    这一组节点负责给模型和 Agent 准备“可用工作现场”：相关 Memory、RAG 证据、
+    Skill 结果摘要，以及最终的 prompt/context 结构。
+    """
+
     def __init__(self, planner_service: Any) -> None:
         self._planner_service = planner_service
 
     def load_memory(self, state: TripPlanningState) -> dict[str, Any]:
+        """读取长期记忆，并按当前任务筛选本轮真正要注入的偏好。"""
         service = self._planner_service
         memory_context_model = service._memory_service.load_context(
             user_id=state["user_id"],
@@ -43,6 +50,11 @@ class ContextNodes:
         }
 
     def retrieve_knowledge(self, state: TripPlanningState) -> dict[str, Any]:
+        """按任务画像决定是否触发 RAG。
+
+        轻量天气等问题通常不需要知识库；景点推荐或行程规划会把目的地、偏好、预算、
+        天数等约束传给检索层，用于 query rewrite、召回和重排。
+        """
         service = self._planner_service
         task_profile = state["task_profile"]
         structured_constraints = state["structured_constraints"]
@@ -83,6 +95,7 @@ class ContextNodes:
         }
 
     def assemble_context(self, state: TripPlanningState) -> dict[str, Any]:
+        """把用户请求、约束、Memory、RAG、Skill 结果组装成模型上下文。"""
         service = self._planner_service
         assembled_context = service._context_assembler.assemble(
             user_input=state["message"],

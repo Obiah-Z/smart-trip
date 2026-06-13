@@ -10,12 +10,20 @@ from app.skills.skill_registry import SkillDefinition
 
 @dataclass(frozen=True)
 class SkillSelectionItem:
+    """一次 Skill 选择结果，包含选择原因和来源。"""
+
     skill_id: str
     reason: str
     source: str
 
 
 class SkillSelectionService:
+    """根据用户输入和结构化约束选择本轮需要执行的 Skills。
+
+    选择优先级：简单咨询 fast path -> LLM 选择（可用时）-> 规则启发式兜底 ->
+    规划必需 Skill 补齐 -> 依赖展开。这样可以兼顾响应速度、可解释性和复杂规划完整性。
+    """
+
     ITINERARY_KEYWORDS = ("行程", "路线", "规划", "安排", "攻略", "几日游", "旅行方案", "旅游方案")
     ATTRACTION_KEYWORDS = (
         "景点",
@@ -50,6 +58,7 @@ class SkillSelectionService:
         structured_constraints: dict[str, Any],
         available_skills: list[SkillDefinition],
     ) -> list[SkillSelectionItem]:
+        """选择并排序本轮可执行 Skill。"""
         resolved_days = structured_constraints.get("days") or 0
         followup_replan = structured_constraints.get("_followup_replan") is True
         consulting_fast_path = (
@@ -60,6 +69,7 @@ class SkillSelectionService:
             and structured_constraints.get("budget", 0) == 0
         )
         if consulting_fast_path:
+            # 天气/景点等轻咨询不走 LLM 选择，减少耗时并避免误补路线规划能力。
             heuristic = self._select_with_heuristics(
                 user_input=user_input,
                 structured_constraints=structured_constraints,
@@ -113,6 +123,11 @@ class SkillSelectionService:
         items: list[SkillSelectionItem],
         available_skills: list[SkillDefinition],
     ) -> list[SkillSelectionItem]:
+        """为完整规划补齐关键 Skill。
+
+        即使 LLM 或关键词只选中了 route.plan，多日旅行仍需要住宿、预算和审计等能力来保证
+        输出可用性和约束一致性。
+        """
         skills_by_id = {skill.skill_id: skill for skill in available_skills}
         item_map = {item.skill_id: item for item in items}
         resolved_days = structured_constraints.get("days") or 0
@@ -177,6 +192,7 @@ class SkillSelectionService:
         available_skills: list[SkillDefinition],
         source: str,
     ) -> list[SkillSelectionItem]:
+        """清洗 LLM 返回的候选 Skill，只保留注册表中存在且未重复的项。"""
         skills_by_id = {skill.skill_id: skill for skill in available_skills}
         items: list[SkillSelectionItem] = []
         seen: set[str] = set()
@@ -196,6 +212,11 @@ class SkillSelectionService:
         structured_constraints: dict[str, Any],
         available_skills: list[SkillDefinition],
     ) -> list[SkillSelectionItem]:
+        """规则型 Skill 选择兜底。
+
+        这里显式区分天气咨询、景点推荐、多日规划、住宿、预算和系统能力查询，保证在模型
+        不可用或不稳定时主链路仍能跑通。
+        """
         text = user_input.lower()
         preferences = structured_constraints.get("preferences", [])
         itinerary_intent = self._contains_any(user_input, self.ITINERARY_KEYWORDS)
@@ -277,6 +298,7 @@ class SkillSelectionService:
         items: list[SkillSelectionItem],
         available_skills: list[SkillDefinition],
     ) -> list[SkillSelectionItem]:
+        """按 Skill 定义中的 depends_on 递归补齐依赖，并按 priority 排序。"""
         skills_by_id = {skill.skill_id: skill for skill in available_skills}
         explicit = {item.skill_id: item for item in items}
         ordered_items = sorted(items, key=lambda item: skills_by_id[item.skill_id].priority)
@@ -308,4 +330,5 @@ class SkillSelectionService:
         return any(keyword.lower() in normalized for keyword in keywords)
 
     def _matches_weather_question(self, text: str) -> bool:
+        """匹配常见中文天气问法。"""
         return bool(re.search(r"(会)?下雨吗|有雨吗|天气如何|天气怎么样|气温多少|几度|多少度", text))

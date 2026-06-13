@@ -6,12 +6,16 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class DemoPlanRequest(BaseModel):
+    """旅行咨询/规划主接口请求。"""
+
     user_id: str = Field(default="demo-user")
     session_id: str | None = None
     message: str
 
 
 class AttractionImageGenerateRequest(BaseModel):
+    """单个景点图片生成请求。"""
+
     destination: str
     attraction_name: str
     attraction_type: str | None = None
@@ -28,6 +32,8 @@ class AttractionImageGenerateRequest(BaseModel):
 
 
 class AttractionImageGenerateResponse(BaseModel):
+    """图片生成结果，包含本地静态资源路径和供应商请求信息。"""
+
     task_id: str
     status: str
     image_url: str
@@ -49,12 +55,16 @@ class AttractionImageGenerateResponse(BaseModel):
 
 
 class MemoryUpsertRequest(BaseModel):
+    """手动写入 Memory 的请求。"""
+
     key: str
     value: str
     scope: str = "user_preference"
 
 
 class MemoryItem(BaseModel):
+    """长期 Memory 存储项。"""
+
     user_id: str
     key: str
     value: str
@@ -63,12 +73,19 @@ class MemoryItem(BaseModel):
 
 
 class MemoryUpdateItem(BaseModel):
+    """本轮规划自动写回的 Memory 记录。"""
+
     key: str
     value: str
     scope: str
 
 
 class StructuredConstraints(BaseModel):
+    """后端解析出的本轮有效旅行约束。
+
+    _followup_replan 是内部字段；通过 alias 暴露，保证前端调试时能看到它来自后端追问判断。
+    """
+
     model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
 
     destination: str | None
@@ -85,6 +102,8 @@ class StructuredConstraints(BaseModel):
 
 
 class ToolResult(BaseModel):
+    """Skill/Tool 执行结果。"""
+
     tool_name: str
     display_name: str | None = None
     provider: str | None = None
@@ -94,12 +113,16 @@ class ToolResult(BaseModel):
 
 
 class AgentOutput(BaseModel):
+    """多 Agent 阶段输出。"""
+
     agent: str
     summary: str
     payload: dict[str, Any]
 
 
 class SkillDefinitionItem(BaseModel):
+    """注册到系统中的 Skill 元数据。"""
+
     skill_id: str
     display_name: str
     description: str
@@ -116,6 +139,8 @@ class SkillDefinitionItem(BaseModel):
 
 
 class SelectedSkillItem(BaseModel):
+    """本轮被选择执行的 Skill 及选择原因。"""
+
     skill_id: str
     display_name: str
     reason: str
@@ -124,10 +149,14 @@ class SelectedSkillItem(BaseModel):
 
 
 class SkillInvokeRequest(BaseModel):
+    """手动调用 Skill 的请求体。"""
+
     payload: dict[str, Any]
 
 
 class SessionRunListItem(BaseModel):
+    """历史会话列表项。"""
+
     session_id: str
     user_id: str
     request_text: str
@@ -139,6 +168,12 @@ class SessionRunListItem(BaseModel):
 
 
 class DemoPlanResponse(BaseModel):
+    """旅行规划主接口响应。
+
+    用户视图主要消费 final_plan 和 llm_output；开发调试视图消费 task_profile、
+    session_context、retrieval_context、tool_results、agent_outputs 和 assembled_context。
+    """
+
     session_id: str
     user_input: str
     task_profile: dict[str, Any]

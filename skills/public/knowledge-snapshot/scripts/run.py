@@ -6,6 +6,10 @@ from typing import Any
 
 
 def build_snapshot_response(*, payload: dict[str, Any]) -> dict[str, Any]:
+    """返回系统知识桥接能力快照。
+
+    这是开发调试类 Skill，不应出现在普通用户旅行建议中，因此 safe_for_user_view=False。
+    """
     destination = str(payload.get("destination", "")).strip()
     return {
         "source": "mock_mcp",
@@ -22,6 +26,7 @@ def build_snapshot_response(*, payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> None:
+    """Skill 子进程入口：读取 payload 并输出能力快照 JSON。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--payload-json", required=True)
     args = parser.parse_args()

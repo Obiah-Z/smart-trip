@@ -21,6 +21,13 @@ from app.workflow.graph import TripPlanningWorkflow
 
 
 class PlannerService:
+    """旅行规划应用层门面。
+
+    LangGraph 负责控制节点顺序，PlannerService 负责聚合各类业务依赖，并提供节点会调用的
+    约束合并、会话恢复、澄清响应、轻咨询响应等方法。这样做可以让图拓扑保持清晰，同时
+    避免每个 node 直接了解所有底层服务。
+    """
+
     REPLAN_UPDATE_KEYWORDS = (
         "提升",
         "提高",
@@ -96,6 +103,7 @@ class PlannerService:
         self._workflow = TripPlanningWorkflow(self)
 
     def run(self, *, user_id: str, session_id: str | None, message: str) -> dict[str, Any]:
+        """对外唯一执行入口；实际控制流交给 LangGraph workflow。"""
         return self._workflow.run(user_id=user_id, session_id=session_id, message=message)
 
     def _resolve_structured_constraints(
@@ -106,6 +114,12 @@ class PlannerService:
         message: str,
         revision_intent: RevisionIntent,
     ) -> dict[str, Any]:
+        """把本轮槽位、会话基线和追问修订合并成有效旅行约束。
+
+        这里是多轮体验的核心：首次规划直接使用当前输入；澄清恢复会把用户补充的“3天”
+        或“成都”接回原始请求；追问修改则继承上一轮目的地/天数并只覆盖预算、偏好、
+        排除景点等被用户明确改变的字段。
+        """
         latest_constraints = session_context.get("latest_structured_constraints") or {}
         baseline_constraints = self._resolve_session_baseline_constraints(session_context=session_context)
         is_followup_update = self._is_followup_update(
@@ -195,6 +209,7 @@ class PlannerService:
         latest_constraints: dict[str, Any],
         baseline_constraints: dict[str, Any],
     ) -> str | None:
+        """目的地优先使用当前明确表达，否则从最近规划或会话基线继承。"""
         if getattr(slots, "destination_explicit", False):
             return slots.destination
 
@@ -202,6 +217,7 @@ class PlannerService:
         return inherited_destination or slots.destination
 
     def _expand_structured_constraints(self, *, structured_constraints: dict[str, Any]) -> dict[str, Any]:
+        """用景点知识图谱扩展排除列表，例如把“故宫”扩展到相关别名/同组点位。"""
         raw_excluded = list(dict.fromkeys(structured_constraints.get("excluded_attractions") or []))
         if self._graph_expansion_service is None:
             return {
@@ -223,6 +239,7 @@ class PlannerService:
         slots,
         session_context: dict[str, Any],
     ) -> bool:
+        """判断当前输入是否是在回答上一轮澄清问题。"""
         if not session_context.get("session_found"):
             return False
         missing_fields = self._latest_missing_fields(session_context=session_context)
@@ -241,6 +258,11 @@ class PlannerService:
         slots,
         session_context: dict[str, Any],
     ) -> str:
+        """为澄清恢复构造更完整的任务文本。
+
+        用户只回复“3天”时，直接拿这句话做任务路由会丢掉原始目的地和规划意图。
+        因此这里会把上一轮 initial_request_text 与新补充的目的地/天数组合成有效输入。
+        """
         if not self._is_clarification_recovery(slots=slots, session_context=session_context):
             return message
 
@@ -269,6 +291,7 @@ class PlannerService:
         session_context: dict[str, Any],
         revision_intent: RevisionIntent,
     ):
+        """识别本轮任务类型，并强制把规划追问归回完整规划链路。"""
         profile = self._task_router.analyze(
             message,
             days=structured_constraints["days"],
@@ -295,6 +318,11 @@ class PlannerService:
         session_context: dict[str, Any],
         revision_intent: RevisionIntent | None = None,
     ) -> bool:
+        """判断当前请求是否是对上一份旅行规划的修改。
+
+        只有上一轮确实是 travel_planning 时才允许继承规划上下文；天气、门票等轻咨询追问
+        不会被强行转成重新规划。
+        """
         latest_constraints = session_context.get("latest_structured_constraints")
         latest_task_profile = session_context.get("latest_task_profile") or {}
         if not session_context.get("session_found") or not latest_constraints:
@@ -312,6 +340,11 @@ class PlannerService:
         return False
 
     def _resolve_implicit_session_id(self, *, user_id: str, message: str, slots) -> str | None:
+        """当前端未传 session_id 时，为明显的追问自动挂靠最近规划会话。
+
+        这解决了用户在页面刷新或新输入入口继续说“不要西湖，重新规划”时，系统仍能找到
+        上一次杭州三日游的上下文。
+        """
         if not self._looks_like_followup_without_session(message=message, slots=slots):
             return None
 
@@ -340,6 +373,7 @@ class PlannerService:
         return self._revision_intent_resolver.has_revision_signal(message=message, slots=slots)
 
     def _has_followup_update_signal(self, *, message: str, slots) -> bool:
+        """覆盖常见中文追问表达，降低“同义表达未命中导致走轻咨询”的概率。"""
         if self._revision_intent_resolver.has_revision_signal(message=message, slots=slots):
             return True
         if any(keyword in message for keyword in self.EXCLUSION_UPDATE_KEYWORDS):
@@ -357,6 +391,7 @@ class PlannerService:
         return any(token in message for token in ("住宿", "酒店", "舒适", "舒服", "安静", "热闹"))
 
     def _normalize_followup_message(self, message: str) -> str:
+        """把“不想逛/不要去逛”等表达归一成排除类信号。"""
         return (
             message.replace("不想要去逛", "不想去")
             .replace("不想再去", "不去")
@@ -367,11 +402,17 @@ class PlannerService:
         )
 
     def _looks_like_consulting_followup(self, *, message: str) -> bool:
+        """识别天气、门票、开放时间等咨询问题，避免误触发重新规划。"""
         weather_hit = any(token in message for token in ("天气", "气温", "几度", "下雨", "穿什么", "适合旅游"))
         question_hit = bool(re.search(r"(有哪些|有什么|有啥|如何|怎么样|吗|几度|多少度|门票|开放时间)", message))
         return weather_hit or question_hit
 
     def _merge_preferences(self, *, base_preferences: list[str], new_preferences: list[str]) -> list[str]:
+        """合并偏好，并允许酒店环境偏好被后续明确表达覆盖。
+
+        quiet_hotel 与 lively_hotel 是互斥偏好；如果用户新一轮明确说“热闹/安静”，旧偏好
+        需要被替换，不能同时保留造成规划冲突。
+        """
         hotel_environment_preferences = {"quiet_hotel", "lively_hotel"}
         merged = [item for item in base_preferences if item not in hotel_environment_preferences]
         if not any(item in new_preferences for item in hotel_environment_preferences):
@@ -380,6 +421,11 @@ class PlannerService:
         return list(dict.fromkeys(merged))
 
     def _resolve_session_baseline_constraints(self, *, session_context: dict[str, Any]) -> dict[str, Any]:
+        """读取会话基线约束；缺失时从最初请求重新抽取。
+
+        baseline 用于保护“最初确认过的目的地、天数、预算”等核心条件，避免后续轻咨询或
+        局部追问把主方案状态覆盖掉。
+        """
         baseline_constraints = session_context.get("session_baseline_constraints")
         if isinstance(baseline_constraints, dict) and baseline_constraints:
             return baseline_constraints
@@ -409,6 +455,7 @@ class PlannerService:
         baseline_constraints: dict[str, Any],
         message: str,
     ) -> int:
+        """追问没有显式天数时优先继承上一轮规划天数，而不是重新询问用户。"""
         latest_days = latest_constraints.get("days")
         baseline_days = baseline_constraints.get("days")
 
@@ -432,6 +479,7 @@ class PlannerService:
         baseline_constraints: dict[str, Any],
         revision_intent: RevisionIntent,
     ) -> int:
+        """追问预算解析优先级：当前输入 > 修订意图目标预算 > 最近规划 > 会话基线。"""
         if slots.budget is not None:
             return slots.budget
         if revision_intent.target_budget is not None:
@@ -451,6 +499,7 @@ class PlannerService:
         structured_constraints: dict[str, Any],
         message: str,
     ) -> dict[str, Any]:
+        """补齐历史消息和会话基线，供后续追问恢复使用。"""
         history_messages = [
             item for item in session_context.get("history_messages", [])
             if isinstance(item, str) and item.strip()
@@ -500,6 +549,11 @@ class PlannerService:
         structured_constraints: dict[str, Any],
         session_context: dict[str, Any],
     ) -> list[str]:
+        """计算本轮仍缺失的关键信息。
+
+        如果上一轮澄清过某字段，会优先检查该字段是否已经补齐；完整规划至少需要目的地
+        和天数，轻咨询通常只要求目的地。
+        """
         pending_missing_fields = self._latest_missing_fields(session_context=session_context)
         unresolved_pending_fields = [
             field_name
@@ -528,6 +582,11 @@ class PlannerService:
         selected_skills: list[dict[str, Any]],
         tool_results: list[dict[str, Any]],
     ) -> dict[str, Any]:
+        """构建轻咨询响应并持久化。
+
+        轻咨询会保留 Context/Memory/RAG/Tool 等调试信息，但不会进入多 Agent 规划，也不会
+        写入长期偏好，避免一次天气问答污染用户画像。
+        """
         final_plan = self._build_consulting_plan(
             structured_constraints=structured_constraints,
             retrieval_context=retrieval_context,
@@ -588,6 +647,11 @@ class PlannerService:
         structured_constraints: dict[str, Any],
         missing_fields: list[str],
     ) -> dict[str, Any]:
+        """构建澄清响应并持久化。
+
+        澄清响应使用和正常响应一致的数据骨架，方便前端统一渲染；但它会明确标记
+        missingFields 和 suggestedReplies，让下一轮输入能够被识别为 clarification recovery。
+        """
         primary_missing_field = missing_fields[0]
         clarification_task_profile = {
             "task_type": "travel_consulting",
@@ -725,6 +789,11 @@ class PlannerService:
         retrieval_context: dict[str, Any],
         tool_results: list[dict[str, Any]],
     ) -> dict[str, Any]:
+        """把轻量工具结果转换成前端可直接消费的 final_plan。
+
+        这里故意只支持天气和景点等轻能力；真正的多日行程仍交给完整规划链路，避免把
+        简单问答和复杂规划混在同一个输出生成过程里。
+        """
         destination = structured_constraints["destination"]
         tags = structured_constraints.get("preferences", [])
         tool_result = tool_results[0] if tool_results else None

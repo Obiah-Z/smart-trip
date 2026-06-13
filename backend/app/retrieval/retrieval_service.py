@@ -10,9 +10,16 @@ from app.scripts import ensure_rag_ready
 
 
 class RetrievalService:
+    """业务层 RAG 检索入口。
+
+    该服务屏蔽底层索引文件、query rewrite、BM25/vector 融合等细节，对 workflow 只暴露
+    retrieve()，返回可注入 Context 的知识片段和可视化调试信息。
+    """
+
     def __init__(self, settings: Settings | None = None) -> None:
         self._settings = settings or Settings()
         backend_root = Path(__file__).resolve().parents[2]
+        # 启动时保证本地 chunk manifest/BM25 索引存在；embedding 索引不可用时后续会自动退回 BM25。
         ensure_rag_ready(backend_root=backend_root, settings=self._settings)
         if self._settings.rag_index_path:
             index_path = Path(self._settings.rag_index_path)
@@ -36,6 +43,7 @@ class RetrievalService:
         pace: str = "balanced",
         user_input: str = "",
     ) -> dict[str, object]:
+        """执行一次完整检索：query rewrite -> 本地 RAG 召回 -> 业务重排 -> Context 注入。"""
         resolved_days = days or 3
         query_rewrite = self._query_rewrite_service.rewrite(
             destination=destination,
@@ -82,6 +90,7 @@ class RetrievalService:
         }
 
     def _resolve_top_k(self, *, days: int, preferences: list[str]) -> int:
+        """根据任务复杂度动态扩大召回数量，避免长行程或多偏好时证据不足。"""
         top_k = 3
         if days >= 4:
             top_k += 1

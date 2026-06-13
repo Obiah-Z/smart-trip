@@ -8,6 +8,10 @@ from app.mock.travel_engine import load_travel_data, weather_lookup
 
 
 def build_weather_response(*, data: dict[str, Any], destination: str) -> dict[str, Any]:
+    """查询目的地天气并生成旅行适宜性标签。
+
+    当前数据来自本地旅行数据集，输出字段保持工具化结构，供轻咨询回答和完整规划链路共同使用。
+    """
     normalized_destination = destination.strip()
     if not normalized_destination:
         return {
@@ -36,6 +40,7 @@ def build_weather_response(*, data: dict[str, Any], destination: str) -> dict[st
 
 
 def _infer_travel_suitability(*, summary: str, advice: str, matched: bool) -> str:
+    """根据天气摘要和建议推断旅行适宜性。"""
     if not matched:
         return "unknown"
     text = f"{summary} {advice}"
@@ -47,6 +52,7 @@ def _infer_travel_suitability(*, summary: str, advice: str, matched: bool) -> st
 
 
 def _infer_risk_flags(*, summary: str, advice: str, matched: bool) -> list[str]:
+    """抽取 rain/heat/cold 等风险标签，供前端或 Agent 做提示。"""
     if not matched:
         return ["unknown_weather"]
     text = f"{summary} {advice}"
@@ -65,6 +71,7 @@ def _infer_risk_flags(*, summary: str, advice: str, matched: bool) -> list[str]:
 
 
 def main() -> None:
+    """Skill 子进程入口：从 --payload-json 读取 destination 并输出天气 JSON。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--payload-json", required=True)
     args = parser.parse_args()

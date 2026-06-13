@@ -4,7 +4,11 @@ from typing import Any
 
 
 class PlanReviewer:
-    """Deterministic final-plan checks and local repair helpers."""
+    """最终方案的确定性校验与局部修复器。
+
+    Agent 层 reviewer 偏向生成审查说明；这里负责 LangGraph 中的硬校验，重点拦截
+    “排除景点仍出现”“多日无住宿”“预算明显超限”“天数不一致”等结构性问题。
+    """
 
     def build_review(
         self,
@@ -12,6 +16,7 @@ class PlanReviewer:
         final_plan: dict[str, Any],
         structured_constraints: dict[str, Any],
     ) -> dict[str, Any]:
+        """汇总所有确定性校验结果，并决定是否需要进入 repair_plan 节点。"""
         issues = [
             *self._review_excluded_attractions(final_plan=final_plan, structured_constraints=structured_constraints),
             *self._review_hotel_availability(final_plan=final_plan, structured_constraints=structured_constraints),
@@ -43,6 +48,7 @@ class PlanReviewer:
         structured_constraints: dict[str, Any],
         review: dict[str, Any],
     ) -> dict[str, Any]:
+        """按 issue 类型执行局部修复；不可修复问题只保留在 review 中提示。"""
         repaired = dict(final_plan)
         issue_names = {item["name"] for item in review.get("issues", [])}
         if "excluded_attractions_present" in issue_names:
@@ -68,6 +74,7 @@ class PlanReviewer:
         original_review: dict[str, Any],
         repaired_review: dict[str, Any],
     ) -> list[str]:
+        """把 repair 前后的差异转成可展示的修复说明。"""
         notes = []
         original_issue_names = {item["name"] for item in original_review.get("issues", [])}
         remaining_issue_names = {item["name"] for item in repaired_review.get("issues", [])}
@@ -88,6 +95,7 @@ class PlanReviewer:
         final_plan: dict[str, Any],
         structured_constraints: dict[str, Any],
     ) -> list[dict[str, Any]]:
+        """检查最终展示结构中是否仍包含用户明确排除的景点或别名。"""
         excluded = self._resolve_excluded_terms(structured_constraints=structured_constraints)
         if not excluded:
             return []
@@ -115,6 +123,7 @@ class PlanReviewer:
         final_plan: dict[str, Any],
         structured_constraints: dict[str, Any],
     ) -> list[dict[str, Any]]:
+        """多日旅行必须有住宿推荐或占位提示。"""
         days = int(structured_constraints.get("days") or 0)
         if days <= 1:
             return []
@@ -136,6 +145,7 @@ class PlanReviewer:
         final_plan: dict[str, Any],
         structured_constraints: dict[str, Any],
     ) -> list[dict[str, Any]]:
+        """检查预算是否明显超过用户给出的上限。"""
         budget_limit = int(structured_constraints.get("budget") or 0)
         if budget_limit <= 0:
             return []
@@ -159,6 +169,7 @@ class PlanReviewer:
         final_plan: dict[str, Any],
         structured_constraints: dict[str, Any],
     ) -> list[dict[str, Any]]:
+        """检查 final_plan.days 数量是否匹配已确认天数。"""
         requested_days = structured_constraints.get("days")
         if not isinstance(requested_days, int) or requested_days <= 0:
             return []
@@ -177,6 +188,7 @@ class PlanReviewer:
         ]
 
     def _collect_plan_text_items(self, *, final_plan: dict[str, Any]) -> list[str]:
+        """收集所有可能出现在用户界面上的文本，用于排除词扫描。"""
         items: list[str] = []
         for day in final_plan.get("days") or []:
             if not isinstance(day, dict):
@@ -209,6 +221,7 @@ class PlanReviewer:
         final_plan: dict[str, Any],
         structured_constraints: dict[str, Any],
     ) -> dict[str, Any]:
+        """从最终展示字段中移除排除景点相关内容。"""
         excluded = self._resolve_excluded_terms(structured_constraints=structured_constraints)
         if not excluded:
             return final_plan
@@ -287,6 +300,7 @@ class PlanReviewer:
         final_plan: dict[str, Any],
         structured_constraints: dict[str, Any],
     ) -> dict[str, Any]:
+        """补充住宿占位，避免多日行程前端显示为空。"""
         destination = structured_constraints.get("destination") or "目的地"
         fallback_hotel = {
             "name": f"{destination}舒适住宿待确认",
@@ -319,6 +333,7 @@ class PlanReviewer:
         final_plan: dict[str, Any],
         structured_constraints: dict[str, Any],
     ) -> dict[str, Any]:
+        """按预算上限等比例压缩展示预算。"""
         budget_limit = int(structured_constraints.get("budget") or 0)
         if budget_limit <= 0:
             return final_plan

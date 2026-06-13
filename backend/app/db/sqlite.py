@@ -21,10 +21,12 @@ except ModuleNotFoundError:  # pragma: no cover
 
 
 def sqlite_available() -> bool:
+    """当前 Python 环境是否能使用 sqlite 驱动。"""
     return sqlite3 is not None
 
 
 def get_connection():
+    """创建 SQLite 连接，并使用 Row 方便按字段名读取结果。"""
     if sqlite3 is None:
         raise RuntimeError("sqlite3 is unavailable in current Python environment")
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -34,6 +36,7 @@ def get_connection():
 
 
 def ensure_json_store() -> None:
+    """确保 JSON 快照/fallback 文件存在。"""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     if not MEMORY_PATH.exists():
         MEMORY_PATH.write_text("[]", encoding="utf-8")
@@ -52,6 +55,11 @@ def save_json_records(path: Path, records: list[dict]) -> None:
 
 
 def init_db() -> None:
+    """初始化持久化层。
+
+    SQLite 可用时是主存储：创建核心表、从旧 JSON 快照迁移初始数据，并同步一份 JSON
+    快照方便本地查看。SQLite 不可用时退回纯 JSON 存储。
+    """
     if sqlite_available():
         with get_connection() as connection:
             _ensure_core_schema(connection)
@@ -63,6 +71,7 @@ def init_db() -> None:
 
 
 def _ensure_core_schema(connection) -> None:
+    """创建核心表和索引，并处理早期 session_runs 无 run_id 的结构迁移。"""
     connection.execute(
         """
         CREATE TABLE IF NOT EXISTS user_memory (
@@ -114,6 +123,7 @@ def _ensure_core_schema(connection) -> None:
 
 
 def _migrate_json_snapshots_to_sqlite(connection) -> None:
+    """仅在 SQLite 表为空时从 JSON 快照导入历史数据。"""
     if _table_count(connection, "user_memory") == 0:
         _migrate_memory_snapshot(connection, records=_load_snapshot_records(MEMORY_PATH))
     if _table_count(connection, "session_runs") == 0:
@@ -121,6 +131,7 @@ def _migrate_json_snapshots_to_sqlite(connection) -> None:
 
 
 def _load_snapshot_records(path: Path) -> list[dict[str, Any]]:
+    """安全读取 JSON 快照；文件损坏时返回空列表。"""
     if not path.exists():
         return []
     try:
@@ -133,6 +144,7 @@ def _load_snapshot_records(path: Path) -> list[dict[str, Any]]:
 
 
 def _migrate_memory_snapshot(connection, *, records: list[dict[str, Any]]) -> None:
+    """把旧 memory_store.json 记录迁移到 user_memory 表。"""
     for record in records:
         user_id = str(record.get("user_id") or "").strip()
         key = str(record.get("key") or "").strip()
@@ -155,6 +167,7 @@ def _migrate_memory_snapshot(connection, *, records: list[dict[str, Any]]) -> No
 
 
 def _migrate_session_run_snapshot(connection, *, records: list[dict[str, Any]]) -> None:
+    """把旧 session_runs_store.json 记录迁移到 session_runs 表。"""
     for index, record in enumerate(records):
         session_id = str(record.get("session_id") or "").strip()
         user_id = str(record.get("user_id") or "").strip()
@@ -176,6 +189,7 @@ def _migrate_session_run_snapshot(connection, *, records: list[dict[str, Any]]) 
 
 
 def _normalize_response_json(record: dict[str, Any]) -> str:
+    """兼容 response_json 字符串和早期 response 对象两种快照格式。"""
     response_json = record.get("response_json")
     if isinstance(response_json, str) and response_json.strip():
         return response_json
@@ -188,6 +202,7 @@ def _normalize_response_json(record: dict[str, Any]) -> str:
 
 
 def _generate_legacy_run_id(*, index: int, record: dict[str, Any]) -> str:
+    """为旧快照生成稳定 run_id，避免重复迁移时产生不同主键。"""
     stable_key = "|".join(
         [
             str(index),
@@ -201,6 +216,7 @@ def _generate_legacy_run_id(*, index: int, record: dict[str, Any]) -> str:
 
 
 def _table_count(connection, table_name: str) -> int:
+    """返回白名单表的记录数。"""
     if table_name not in {"user_memory", "session_runs", "graph_nodes", "graph_edges"}:
         raise ValueError(f"unsupported table: {table_name}")
     exists = connection.execute(
@@ -213,7 +229,7 @@ def _table_count(connection, table_name: str) -> int:
 
 
 def sync_sqlite_snapshots(*, connection=None) -> None:
-    """Mirror SQLite runtime tables to JSON snapshots for local inspection/backup."""
+    """把 SQLite 运行表镜像到 JSON 快照，供本地查看和备份。"""
     if not sqlite_available():
         ensure_json_store()
         return
@@ -228,6 +244,7 @@ def sync_sqlite_snapshots(*, connection=None) -> None:
 
 
 def _write_core_table_snapshots(connection) -> None:
+    """写出 user_memory 和 session_runs 两个核心表的 JSON 快照。"""
     memory_rows = connection.execute(
         """
         SELECT user_id, key, value, scope, updated_at
@@ -255,6 +272,7 @@ def _json_snapshot_counts() -> dict[str, int]:
 
 
 def get_storage_status() -> dict[str, Any]:
+    """返回存储状态，供 /api/debug/storage 和前端调试视图使用。"""
     if not sqlite_available():
         ensure_json_store()
         return {

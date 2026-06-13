@@ -6,12 +6,20 @@ from typing import Any
 
 @dataclass(frozen=True)
 class AgentExecutionResult:
+    """单个 Agent 阶段的输出。"""
+
     name: str
     summary: str
     payload: dict[str, Any]
 
 
 class AgentService:
+    """多 Agent 协作的本地实现。
+
+    这里的 Agent 是按职责拆分的确定性阶段，而不是多个独立 LLM 会话：planner 负责任务拆解，
+    retriever 汇总知识和工具证据，executor 生成用户可消费的方案结构，reviewer 输出校验结论。
+    """
+
     TOOL_NAME_MAP = {
         "route": "route.plan",
         "hotel": "hotel.search",
@@ -43,6 +51,7 @@ class AgentService:
         memory_context: dict[str, Any],
         task_profile: dict[str, Any],
     ) -> list[AgentExecutionResult]:
+        """按固定顺序执行 planner/retriever/executor/reviewer 四个阶段。"""
         planner_result = self._planner_agent(
             constraints=constraints,
             memory_context=memory_context,
@@ -69,6 +78,7 @@ class AgentService:
         memory_context: dict[str, Any],
         task_profile: dict[str, Any],
     ) -> AgentExecutionResult:
+        """生成任务拆解和共享状态投影。"""
         budget_label = f"{constraints['budget']} 元" if (constraints.get("budget") or 0) > 0 else "未指定"
         summary = f"已识别 {constraints['destination']} {constraints['days']} 天行程，预算 {budget_label}。"
         payload = {
@@ -81,6 +91,7 @@ class AgentService:
         return AgentExecutionResult(name="planner_agent", summary=summary, payload=payload)
 
     def _retriever_agent(self, *, retrieval_context: dict[str, Any], tool_results: list[dict[str, Any]]) -> AgentExecutionResult:
+        """汇总 RAG 证据和工具调用轨迹，供调试和 executor 使用。"""
         summary = f"召回 {len(retrieval_context['retrieved_documents'])} 条知识，并完成 {len(tool_results)} 个工具调用。"
         payload = {
             "knowledge": retrieval_context["injected_knowledge"],
@@ -106,6 +117,7 @@ class AgentService:
         planner_payload: dict[str, Any],
         retrieval_context: dict[str, Any],
     ) -> AgentExecutionResult:
+        """把工具结果整合成最终旅行方案结构。"""
         route_result = self._tool_result(tool_results, self.TOOL_NAME_MAP["route"])
         hotel_result = self._tool_result(tool_results, self.TOOL_NAME_MAP["hotel"])
         weather_result = self._tool_result(tool_results, self.TOOL_NAME_MAP["weather"])
@@ -278,6 +290,7 @@ class AgentService:
         executor_payload: dict[str, Any],
         tool_results: list[dict[str, Any]],
     ) -> AgentExecutionResult:
+        """生成 Agent 层审查结果；如果 itinerary.audit 存在，则优先采用 Skill 审计结论。"""
         budget_limit = constraints.get("budget") or 0
         within_budget = True if budget_limit <= 0 else executor_payload["summary"]["totalBudget"] <= budget_limit + 600
         pace_aligned = constraints["pace"] != "intensive" or constraints["days"] >= 2
@@ -373,6 +386,7 @@ class AgentService:
         budget_breakdown: dict[str, int],
         total_budget: int,
     ) -> dict[str, Any]:
+        """处理“预算提升到某个目标并尽量用满”的追问策略。"""
         target_budget = constraints.get("target_budget") or constraints.get("budget") or 0
         budget_policy = constraints.get("budget_policy")
         if budget_policy != "target_near" or target_budget <= 0 or total_budget >= target_budget:
@@ -439,6 +453,7 @@ class AgentService:
         preferences: list[str],
         retrieval_context: dict[str, Any],
     ) -> list[dict[str, Any]]:
+        """从景点/兴趣点中提取餐饮建议；用户明确避开餐饮时返回空列表。"""
         if "avoid_local_food" in preferences or "avoid_food" in preferences:
             return []
 
@@ -523,6 +538,7 @@ class AgentService:
         food_recommendations: list[dict[str, Any]],
         pace: str,
     ) -> list[dict[str, Any]]:
+        """把 route.plan 的按天路线扩展成用户视图里的每日指南。"""
         attraction_lookup = {
             str(item.get("name")): item
             for item in attractions
@@ -611,6 +627,7 @@ class AgentService:
         budget_policy: str | None = None,
         target_budget: int | None = None,
     ) -> list[dict[str, Any]]:
+        """生成面向用户的预算解释，不只展示数字。"""
         insights: list[dict[str, Any]] = []
         if budget_policy == "target_near" and (target_budget or budget_limit) > 0:
             target = target_budget or budget_limit
@@ -687,6 +704,7 @@ class AgentService:
         route_days: list[dict[str, Any]],
         food_recommendations: list[dict[str, Any]],
     ) -> list[str]:
+        """综合天气、住宿、节奏和 RAG 片段生成出行提示。"""
         tips: list[str] = []
         if weather and weather.get("advice"):
             tips.append(str(weather["advice"]))

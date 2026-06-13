@@ -4,6 +4,13 @@ from typing import Any, TypedDict
 
 
 class TripPlanningState(TypedDict, total=False):
+    """LangGraph 在各节点之间传递的共享状态。
+
+    字段按执行阶段逐步补齐：输入阶段写入 slots/session_context，Context 阶段写入
+    memory/retrieval，执行阶段写入 tools/agents/final_plan，响应阶段写入 response。
+    total=False 允许节点只返回自己负责更新的字段。
+    """
+
     user_id: str
     session_id: str | None
     message: str

@@ -7,6 +7,12 @@ from app.skills.skill_script_runner import SkillScriptRunner
 
 
 class ToolService:
+    """把业务侧 Tool Calling 语义映射到本地 Skill 执行。
+
+    Workflow 不直接拼 Skill payload，而是通过这里根据 Skill 的 input_schema 和已有工具结果
+    生成输入，保证 route.plan、budget.optimize、itinerary.audit 等链式 Skill 能拿到前序输出。
+    """
+
     def __init__(self, skill_registry: SkillRegistry, script_runner: SkillScriptRunner) -> None:
         self._skill_registry = skill_registry
         self._script_runner = script_runner
@@ -18,6 +24,7 @@ class ToolService:
         return self._skill_registry.list_skills()
 
     def run_skill(self, *, skill_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        """执行一个 Skill，并统一封装为 tool_result。"""
         definition = self._skill_registry.get(skill_id)
         execution = self._script_runner.run(definition=definition, payload=payload)
         return {
@@ -36,6 +43,7 @@ class ToolService:
         structured_constraints: dict[str, Any],
         tool_results: list[dict[str, Any]],
     ) -> dict[str, Any]:
+        """根据 Skill input_schema 从约束和前序 tool_results 中组装 payload。"""
         definition = self._skill_registry.get(skill_id)
         payload: dict[str, Any] = {}
 
@@ -205,4 +213,5 @@ class ToolService:
         )
 
     def _find_tool_result(self, *, tool_results: list[dict[str, Any]], tool_name: str) -> dict[str, Any] | None:
+        """查找链式 Skill 所依赖的前序工具结果。"""
         return next((item for item in tool_results if item["tool_name"] == tool_name), None)

@@ -8,11 +8,22 @@ from app.workflow.trace import append_trace
 
 
 class ExecutionNodes:
+    """Skill、Agent 和 Reviewer 执行节点。
+
+    这一组节点会真正调用外部能力或内部业务能力。输入阶段只判断“该不该做”，这里负责
+    根据任务画像执行 Skill、多 Agent 规划，并对最终计划做一致性校验和必要修复。
+    """
+
     def __init__(self, planner_service: Any, reviewer: PlanReviewer) -> None:
         self._planner_service = planner_service
         self._reviewer = reviewer
 
     def run_skills(self, state: TripPlanningState) -> dict[str, Any]:
+        """按语义选择并执行 Skill。
+
+        selected_skill_items 是选择器的解释结果；selected_skills 是给前端和 Context 使用的
+        可展示结构；tool_results 是后续 RAG/Agent/咨询回答真正消费的工具输出。
+        """
         service = self._planner_service
         task_profile = state["task_profile"]
         structured_constraints = state["structured_constraints"]
@@ -63,6 +74,7 @@ class ExecutionNodes:
         }
 
     def run_agents(self, state: TripPlanningState) -> dict[str, Any]:
+        """执行多 Agent 协作，并把 executor_agent 的 payload 作为候选最终方案。"""
         service = self._planner_service
         agent_outputs = service._agent_service.run(
             constraints=state["structured_constraints"],
@@ -85,6 +97,7 @@ class ExecutionNodes:
         }
 
     def review_plan(self, state: TripPlanningState) -> dict[str, Any]:
+        """检查最终方案是否违反硬约束，例如排除景点仍被安排进路线。"""
         review = self._reviewer.build_review(
             final_plan=state["final_plan"],
             structured_constraints=state["structured_constraints"],
@@ -106,6 +119,7 @@ class ExecutionNodes:
         }
 
     def repair_plan(self, state: TripPlanningState) -> dict[str, Any]:
+        """对 Reviewer 发现的可修复问题做局部修复，而不是整条链路重跑。"""
         final_plan = self._reviewer.apply_repairs(
             final_plan=state["final_plan"],
             structured_constraints=state["structured_constraints"],

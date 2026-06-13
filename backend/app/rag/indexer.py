@@ -9,11 +9,14 @@ from app.rag.tokenizer import tokenize
 
 
 class RAGIndexBuilder:
+    """从清洗后的 RAG corpus 构建 BM25 检索索引。"""
+
     def __init__(self, *, corpus_dir: Path, index_dir: Path) -> None:
         self._corpus_dir = corpus_dir
         self._index_dir = index_dir
 
     def build(self) -> dict[str, object]:
+        """生成 rag_index.json，包含 chunk、词频、文档频率和 BM25 参数。"""
         loader = RAGCorpusLoader(corpus_dir=self._corpus_dir)
         chunks = loader.load()
         documents = []

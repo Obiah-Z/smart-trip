@@ -19,6 +19,8 @@ from app.skills.skill_registry import SkillDefinition
 
 @dataclass(frozen=True)
 class SandboxPolicy:
+    """单个 Skill 的沙箱执行策略。"""
+
     timeout_seconds: int
     memory_mb: int
     cpu_seconds: int
@@ -29,6 +31,11 @@ class SandboxPolicy:
 
 
 def sandbox_bootstrap() -> None:
+    """在 Skill 子进程内启用沙箱限制。
+
+    该函数通过 python -c bootstrap 在目标脚本执行前运行，因此能在脚本 import 后续库之前
+    限制网络、子进程、写入路径和资源用量。
+    """
     if os.getenv("SMART_TRIP_SANDBOX_ACTIVE") != "1":
         return
 
@@ -45,6 +52,7 @@ def sandbox_bootstrap() -> None:
 
 
 def _apply_resource_limits(*, policy: dict[str, Any]) -> None:
+    """使用系统 rlimit 限制 CPU、内存和文件句柄数量。"""
     memory_bytes = int(policy["memory_mb"]) * 1024 * 1024
     cpu_seconds = int(policy["cpu_seconds"])
     max_open_files = int(policy["max_open_files"])
@@ -70,6 +78,7 @@ def _disable_subprocess() -> None:
 
 
 def _restrict_open(*, writable_roots: tuple[str, ...]) -> None:
+    """拦截常见写入 API，只允许写入临时目录或显式白名单目录。"""
     builtins_module = __import__("builtins")
     original_open = builtins_module.open
     original_mkdir = os.mkdir
@@ -160,6 +169,8 @@ def _restrict_open(*, writable_roots: tuple[str, ...]) -> None:
 
 
 class SkillSandboxRunner:
+    """以独立受限子进程运行 Skill 脚本。"""
+
     DEFAULT_POLICY = SandboxPolicy(
         timeout_seconds=5,
         memory_mb=128,
@@ -171,6 +182,7 @@ class SkillSandboxRunner:
     )
 
     def run(self, *, definition: SkillDefinition, payload: dict[str, Any]) -> dict[str, Any]:
+        """执行 Skill 并返回 output 与 sandbox 审计信息。"""
         policy = self._build_policy(definition=definition)
         temp_dir = Path(tempfile.mkdtemp(prefix=f"smart-trip-{definition.skill_id.replace('.', '-')}-"))
         command = [
@@ -236,6 +248,7 @@ class SkillSandboxRunner:
         }
 
     def _build_policy(self, *, definition: SkillDefinition) -> SandboxPolicy:
+        """合并 Skill 自定义 sandbox_policy 和默认策略。"""
         metadata = definition.sandbox_policy or {}
         writable_roots = tuple(str(item) for item in metadata.get("writable_roots", []))
         return SandboxPolicy(
@@ -249,6 +262,7 @@ class SkillSandboxRunner:
         )
 
     def _bootstrap_command(self, script_path: str) -> str:
+        """生成子进程启动命令：先启用 sandbox，再 runpy 执行 Skill 脚本。"""
         escaped_path = script_path.replace("\\", "\\\\").replace("'", "\\'")
         return (
             "import runpy;"
@@ -258,6 +272,7 @@ class SkillSandboxRunner:
         )
 
     def _persist_if_non_empty(self, *, temp_dir: Path) -> str | None:
+        """如果 Skill 在工作目录产生文件，则移动到 data/sandbox_runs 供审计。"""
         try:
             has_files = any(temp_dir.iterdir())
         except FileNotFoundError:

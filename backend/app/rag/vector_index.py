@@ -10,6 +10,8 @@ from app.rag.types import KnowledgeChunk
 
 
 class LocalVectorIndex:
+    """只读本地向量索引。"""
+
     def __init__(self, *, index_path: Path) -> None:
         payload = json.loads(index_path.read_text(encoding="utf-8"))
         self._model = str(payload.get("model", ""))
@@ -40,6 +42,11 @@ class LocalVectorIndex:
 
 
 class VectorIndexBuilder:
+    """为 RAG chunk 构建可选 embedding 索引。
+
+    该索引不是主流程的硬依赖；构建或调用 embedding 失败时，检索链路仍能通过 BM25 工作。
+    """
+
     def __init__(
         self,
         *,
@@ -56,6 +63,7 @@ class VectorIndexBuilder:
         self._batch_size = max(1, min(batch_size, int(config_value)))
 
     def build(self) -> dict[str, object]:
+        """批量调用 embedding 服务并写入本地向量索引文件。"""
         if not self._embedding_client.enabled():
             raise RuntimeError("Embedding client is disabled")
 
@@ -99,6 +107,7 @@ class VectorIndexBuilder:
         return [chunks[index : index + self._batch_size] for index in range(0, len(chunks), self._batch_size)]
 
     def _chunk_to_embedding_text(self, chunk: KnowledgeChunk) -> str:
+        """将结构化 chunk 渲染成 embedding 输入文本。"""
         keywords = "、".join(chunk.keywords[:10])
         return (
             f"城市：{chunk.city}\n"

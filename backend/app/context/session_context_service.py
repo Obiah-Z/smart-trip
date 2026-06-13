@@ -6,10 +6,17 @@ from app.db.repositories import SessionRunRepository
 
 
 class SessionContextService:
+    """从历史运行记录中恢复当前会话可继承的上下文。
+
+    该服务是多轮追问的桥梁：它把 session_runs 中最近的规划结果、历史请求、最初请求
+    和会话基线约束整理出来，供 PlannerService 判断是否可以继承目的地、天数、预算等信息。
+    """
+
     def __init__(self, repository: SessionRunRepository) -> None:
         self._repository = repository
 
     def load(self, *, session_id: str | None) -> dict[str, Any]:
+        """加载 session 快照；没有 session 时返回统一的空上下文结构。"""
         if not session_id:
             return {
                 "session_found": False,
@@ -32,6 +39,7 @@ class SessionContextService:
             }
 
         latest_run = session_runs[0]
+        # display_run 优先取“当前主规划结果”，避免最近一次天气/门票咨询覆盖主方案上下文。
         display_run = self._repository.get_run(session_id=session_id) or latest_run
         latest_response = latest_run.get("response", {})
         response = display_run.get("response", {})

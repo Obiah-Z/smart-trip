@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 
 def _append_unique(parts: list[str], value: str) -> None:
+    """保持检索词顺序并去重。"""
     normalized = value.strip()
     if not normalized:
         return
@@ -13,12 +14,20 @@ def _append_unique(parts: list[str], value: str) -> None:
 
 @dataclass(frozen=True)
 class NoteKeywordRule:
+    """从用户原话中抽取补充检索词的规则。"""
+
     triggers: tuple[str, ...]
     outputs: tuple[str, ...]
     destinations: tuple[str, ...] = ()
 
 
 class RuleBasedQueryRewriteService:
+    """把结构化旅行约束改写成更适合本地 RAG 的检索 query。
+
+    当前实现是规则型，优点是稳定、可解释；后续如果接入 LLM query rewrite，可以保留
+    这里的输出格式，减少 RetrievalService 和前端调试面板的改动。
+    """
+
     PREFERENCE_TERM_MAP = {
         "family": ("亲子", "家庭友好", "室内"),
         "rainy_day": ("雨天", "室内", "替代路线"),
@@ -64,6 +73,7 @@ class RuleBasedQueryRewriteService:
         pace: str,
         user_input: str = "",
     ) -> dict[str, object]:
+        """把目的地、天数、偏好、节奏、预算和原话关键词合并为检索词。"""
         query_terms: list[str] = [destination]
         steps = [f"锁定目的地为 {destination}，避免跨城市知识污染。"]
 
@@ -113,6 +123,7 @@ class RuleBasedQueryRewriteService:
         }
 
     def _extract_note_keywords(self, *, user_input: str, destination: str) -> list[str]:
+        """从用户补充描述中提取“雨天/夜景/亲子”等场景词。"""
         if not user_input.strip():
             return []
 
@@ -126,6 +137,7 @@ class RuleBasedQueryRewriteService:
         return keywords
 
     def _budget_terms(self, budget: int) -> tuple[str, ...]:
+        """将预算转成检索侧的体验倾向。"""
         if budget <= 0:
             return ()
         if budget <= 3000:

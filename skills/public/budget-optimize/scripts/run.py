@@ -6,6 +6,11 @@ from typing import Any
 
 
 def build_budget_response(*, payload: dict[str, Any]) -> dict[str, Any]:
+    """生成预算拆分和住宿升级建议。
+
+    该 Skill 依赖 hotel.search、route.plan、attraction.search 的结果。它不会重新生成路线，
+    只根据已有候选计算交通、住宿、餐饮、门票、体验和 buffer 的预算分配。
+    """
     destination = str(payload.get("destination", "")).strip()
     days = _coerce_int(payload.get("days"), default=1, minimum=1, maximum=30)
     budget = _coerce_int(payload.get("budget"), default=0, minimum=0, maximum=500000)
@@ -119,6 +124,7 @@ def _as_dict_list(value: Any) -> list[dict[str, Any]]:
 
 
 def _estimate_transport(*, days: int, target_budget: int, pace: str) -> int:
+    """估算市内交通/往返弹性成本；紧凑节奏默认增加交通余量。"""
     if target_budget <= 0:
         return max(300, days * 120)
     base = max(300, target_budget // 6)
@@ -128,6 +134,7 @@ def _estimate_transport(*, days: int, target_budget: int, pace: str) -> int:
 
 
 def _estimate_food(*, days: int, target_budget: int, preferences: list[str]) -> int:
+    """按餐饮偏好估算每日餐饮预算。"""
     daily = 120
     if "local_food" in preferences or "food" in preferences:
         daily = 160
@@ -147,6 +154,10 @@ def _select_hotel(
     preferences: list[str],
     budget_policy: str,
 ) -> dict[str, Any] | None:
+    """选择用于预算拆分的主酒店。
+
+    comfortable_hotel 优先看舒适度；target_near 会在目标预算内尽量选择更高品质住宿。
+    """
     if not hotel_options or nights <= 0:
         return None
     if "comfortable_hotel" in preferences:
@@ -178,6 +189,7 @@ def _select_hotel(
 
 
 def _budget_status(*, total: int, target_budget: int) -> str:
+    """把估算总额转成预算状态标签。"""
     if target_budget <= 0:
         return "no_budget"
     if total > target_budget + 600:
@@ -190,6 +202,7 @@ def _budget_status(*, total: int, target_budget: int) -> str:
 
 
 def _upgrade_focus(*, preferences: list[str], budget_policy: str) -> str:
+    """判断预算增量应该优先投入住宿、餐饮、体验还是均衡分配。"""
     if "comfortable_hotel" in preferences:
         return "accommodation"
     if budget_policy == "target_near":
@@ -207,6 +220,7 @@ def _build_recommendations(
     breakdown: dict[str, int],
     target_budget: int,
 ) -> list[str]:
+    """生成面向最终回答的预算优化建议。"""
     recommendations: list[str] = []
     if selected_hotel:
         recommendations.append(f"推荐住宿优先选择 {selected_hotel.get('name')}，预算中已计入住宿费用。")
@@ -224,6 +238,7 @@ def _build_recommendations(
 
 
 def main() -> None:
+    """Skill 子进程入口：读取 payload 并输出预算优化 JSON。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--payload-json", required=True)
     args = parser.parse_args()

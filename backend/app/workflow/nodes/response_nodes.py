@@ -7,10 +7,17 @@ from app.workflow.trace import append_trace, attach_workflow_trace
 
 
 class ResponseNodes:
+    """响应生成与持久化节点。
+
+    这里把前面阶段产物转换成前端需要的最终响应：轻咨询直接返回短答案，完整规划会补充
+    地图/图片资产、LLM 摘要、Memory 写回和会话运行记录。
+    """
+
     def __init__(self, planner_service: Any) -> None:
         self._planner_service = planner_service
 
     def build_consulting_response(self, state: TripPlanningState) -> dict[str, Any]:
+        """为天气、景点推荐等轻咨询生成响应，并绕过多 Agent 规划。"""
         service = self._planner_service
         response = service._build_consulting_response(
             resolved_session_id=state["resolved_session_id"],
@@ -37,6 +44,7 @@ class ResponseNodes:
         }
 
     def enrich_and_summarize(self, state: TripPlanningState) -> dict[str, Any]:
+        """为完整规划结果补充地图/图片展示数据、LLM 摘要和长期偏好写回。"""
         service = self._planner_service
         final_plan = service._geo_presentation_service.enrich_final_plan(
             final_plan=state["final_plan"],
@@ -69,6 +77,7 @@ class ResponseNodes:
         }
 
     def persist_planning_response(self, state: TripPlanningState) -> dict[str, Any]:
+        """统一组装 API 响应并保存本轮运行记录。"""
         service = self._planner_service
         response = {
             "session_id": state["resolved_session_id"],

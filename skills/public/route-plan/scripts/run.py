@@ -11,6 +11,11 @@ VALID_PACES = {"relaxed", "balanced", "intensive"}
 
 
 def build_route_response(*, payload: dict[str, Any]) -> dict[str, Any]:
+    """把候选景点整理成按天路线。
+
+    route.plan 通常依赖 attraction.search 的结果；当没有候选点位时会退到城市漫步占位，
+    保证链路不中断，同时通过 warnings 告知上层结果质量。
+    """
     destination = str(payload.get("destination", "")).strip()
     days, day_warning = _coerce_days(payload.get("days", 3))
     pace, pace_warning = _coerce_pace(payload.get("pace", "balanced"))
@@ -60,6 +65,7 @@ def _as_string_list(value: Any) -> list[str]:
 
 
 def _coerce_days(value: Any) -> tuple[int, str | None]:
+    """限制行程天数，防止异常输入生成过长路线。"""
     try:
         days = int(value)
     except (TypeError, ValueError):
@@ -72,6 +78,7 @@ def _coerce_days(value: Any) -> tuple[int, str | None]:
 
 
 def _coerce_pace(value: Any) -> tuple[str, str | None]:
+    """校验节奏参数，非法值回退到 balanced。"""
     pace = str(value or "balanced").strip()
     if pace not in VALID_PACES:
         return "balanced", "invalid_pace_defaulted_to_balanced"
@@ -79,6 +86,7 @@ def _coerce_pace(value: Any) -> tuple[str, str | None]:
 
 
 def main() -> None:
+    """Skill 子进程入口：读取 payload 并输出按天路线 JSON。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--payload-json", required=True)
     args = parser.parse_args()

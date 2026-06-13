@@ -11,6 +11,11 @@ VALID_PACES = {"relaxed", "balanced", "intensive"}
 
 
 def build_attraction_response(*, data: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    """根据目的地、偏好、天数、节奏和排除景点筛选候选点位。
+
+    这个 Skill 输出会被 route.plan、budget.optimize、itinerary.audit 和 AgentService 继续消费，
+    因此返回结构中保留了 matched、warnings、selection_strategy 等调试字段。
+    """
     destination = str(payload.get("destination", "")).strip()
     preferences = _as_string_list(payload.get("preferences", []))
     days, day_warning = _coerce_days(payload.get("days", 3))
@@ -65,6 +70,7 @@ def _as_string_list(value: Any) -> list[str]:
 
 
 def _coerce_days(value: Any) -> tuple[int, str | None]:
+    """把外部传入天数限制在路线规划可处理的安全范围内。"""
     try:
         days = int(value)
     except (TypeError, ValueError):
@@ -77,6 +83,7 @@ def _coerce_days(value: Any) -> tuple[int, str | None]:
 
 
 def _coerce_pace(value: Any) -> tuple[str, str | None]:
+    """只接受系统定义的三种节奏，非法值回退到 balanced。"""
     pace = str(value or "balanced").strip()
     if pace not in VALID_PACES:
         return "balanced", "invalid_pace_defaulted_to_balanced"
@@ -84,6 +91,7 @@ def _coerce_pace(value: Any) -> tuple[str, str | None]:
 
 
 def _selection_strategy(*, excluded_attractions: list[str]) -> dict[str, bool]:
+    """描述当前筛选策略，方便开发调试视图解释点位来源。"""
     return {
         "preference_filtering": True,
         "pace_aware": True,
@@ -93,6 +101,7 @@ def _selection_strategy(*, excluded_attractions: list[str]) -> dict[str, bool]:
 
 
 def main() -> None:
+    """Skill 子进程入口：从 --payload-json 读取输入，并向 stdout 输出 JSON。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--payload-json", required=True)
     args = parser.parse_args()

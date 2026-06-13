@@ -4,6 +4,12 @@ from typing import Any
 
 
 class ContextAssembler:
+    """把分散的运行时信息组装成模型和调试视图都能消费的 Context。
+
+    这里不负责推理，也不调用模型；它只把用户输入、任务画像、结构化约束、Memory、
+    RAG、Skill/Tool 证据按固定层次组织起来，避免把长历史或工具原始结果无序拼接进 prompt。
+    """
+
     def assemble(
         self,
         *,
@@ -16,6 +22,11 @@ class ContextAssembler:
         selected_skills: list[dict[str, Any]],
         tool_results: list[dict[str, Any]],
     ) -> dict[str, Any]:
+        """生成 prompt_sections 和 runtime_context。
+
+        prompt_sections 面向 LLM/Agent，强调“当前任务需要什么信息”；runtime_context 面向
+        前端开发调试视图，保留原始结构化对象，方便排查某一层是否注入了错误信息。
+        """
         destination = structured_constraints.get("destination") or "待确认"
         days = structured_constraints.get("days")
         budget = structured_constraints.get("budget", 0)

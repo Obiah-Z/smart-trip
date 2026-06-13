@@ -20,6 +20,11 @@ from app.models.schemas import (
 
 
 def _hydrate_legacy_visual(response: dict, geo_presentation_service) -> dict:
+    """为历史运行记录补齐地图展示数据。
+
+    早期 session_run 可能没有 final_plan.visual.map。这里在读取历史会话时按需补齐，
+    避免为了兼容旧数据去改动持久化结构。
+    """
     final_plan = response.get("final_plan")
     structured_constraints = response.get("structured_constraints") or {}
     if not isinstance(final_plan, dict):
@@ -44,6 +49,7 @@ def _hydrate_legacy_visual(response: dict, geo_presentation_service) -> dict:
 
 
 def _hydrate_legacy_run_visual(run: dict, geo_presentation_service) -> dict:
+    """对 session display run 和 latest_run 同时执行 legacy visual 补齐。"""
     hydrated = deepcopy(run)
     response = hydrated.get("response")
     if isinstance(response, dict):
@@ -67,6 +73,11 @@ def build_router(
     image_generation_service,
     geo_presentation_service,
 ) -> APIRouter:
+    """构建 API 路由。
+
+    用户主入口是 /api/demo/plan；其他接口主要服务开发调试、历史会话、图片生成、Skill
+    手动调用和 Memory 管理。
+    """
     router = APIRouter()
 
     @router.get("/health")
@@ -75,15 +86,18 @@ def build_router(
 
     @router.get("/api/debug/storage")
     def storage_status() -> dict:
+        """暴露当前存储后端和表/快照数量，便于确认 SQLite 是否生效。"""
         return get_storage_status()
 
     @router.post("/api/demo/plan", response_model=DemoPlanResponse)
     def demo_plan(request: DemoPlanRequest) -> DemoPlanResponse:
+        """旅行咨询/规划统一入口。"""
         payload = planner_service.run(user_id=request.user_id, session_id=request.session_id, message=request.message)
         return DemoPlanResponse(**payload)
 
     @router.post("/api/images/attraction/generate", response_model=AttractionImageGenerateResponse)
     def generate_attraction_image(request: AttractionImageGenerateRequest) -> AttractionImageGenerateResponse:
+        """按景点生成图片资产；未配置图片服务时显式返回 503。"""
         if not image_generation_service.enabled():
             raise HTTPException(status_code=503, detail="image generation service is not configured")
         try:
@@ -116,6 +130,7 @@ def build_router(
 
     @router.get("/api/demo/session/{session_id}")
     def get_session(session_id: str) -> dict:
+        """读取单个会话的主展示结果。"""
         run = session_run_repository.get_run(session_id=session_id)
         if run is None:
             raise HTTPException(status_code=404, detail="session not found")
@@ -123,6 +138,7 @@ def build_router(
 
     @router.get("/api/demo/sessions", response_model=list[SessionRunListItem])
     def list_sessions(user_id: str | None = None, limit: int = 20) -> list[SessionRunListItem]:
+        """列出最近会话；每个会话优先展示该会话中的规划主结果。"""
         runs = [
             _hydrate_legacy_run_visual(run, geo_presentation_service)
             for run in session_run_repository.list_runs(user_id=user_id, limit=limit)
@@ -149,6 +165,7 @@ def build_router(
 
     @router.delete("/api/demo/session/{session_id}")
     def delete_session(session_id: str) -> dict[str, str]:
+        """删除一个会话下的所有运行记录。"""
         deleted = session_run_repository.delete_run(session_id=session_id)
         if not deleted:
             raise HTTPException(status_code=404, detail="session not found")
@@ -156,10 +173,12 @@ def build_router(
 
     @router.get("/api/skills", response_model=list[SkillDefinitionItem])
     def list_skills() -> list[SkillDefinitionItem]:
+        """列出系统已注册 Skill；主要用于开发调试。"""
         return [SkillDefinitionItem(**item) for item in tool_service.list_skills()]
 
     @router.post("/api/skills/{skill_id}/invoke")
     def invoke_skill(skill_id: str, request: SkillInvokeRequest) -> dict:
+        """手动执行单个 Skill，绕过 PlannerService。"""
         try:
             return tool_service.run_skill(skill_id=skill_id, payload=request.payload)
         except KeyError as exc:
@@ -167,10 +186,12 @@ def build_router(
 
     @router.get("/api/memory/{user_id}", response_model=list[MemoryItem])
     def list_memory(user_id: str) -> list[MemoryItem]:
+        """查看指定用户的长期 Memory。"""
         return [MemoryItem(**item) for item in memory_service.list_memories(user_id=user_id)]
 
     @router.put("/api/memory/{user_id}")
     def upsert_memory(user_id: str, request: MemoryUpsertRequest) -> dict[str, str]:
+        """手动写入或覆盖一条长期 Memory。"""
         memory_service.upsert_memory(user_id=user_id, key=request.key, value=request.value, scope=request.scope)
         return {"status": "ok"}
 

@@ -17,7 +17,14 @@ from app.db.sqlite import (
 
 
 class MemoryRepository:
+    """用户长期 Memory 仓储。
+
+    SQLite 可用时优先读写 SQLite，并同步 JSON 快照；SQLite 不可用时直接读写 JSON，
+    让本地演示环境不因为 sqlite 驱动问题不可用。
+    """
+
     def list_memories(self, *, user_id: str) -> list[dict[str, str]]:
+        """按用户读取长期记忆。"""
         if sqlite_available():
             with get_connection() as connection:
                 rows = connection.execute(
@@ -31,6 +38,7 @@ class MemoryRepository:
         return sorted(filtered, key=lambda item: item["key"])
 
     def upsert_memory(self, *, user_id: str, key: str, value: str, scope: str) -> None:
+        """按 user_id + key 覆盖写入 Memory。"""
         now = datetime.now(timezone.utc).isoformat()
         if sqlite_available():
             with get_connection() as connection:
@@ -64,7 +72,14 @@ class MemoryRepository:
 
 
 class SessionRunRepository:
+    """会话运行记录仓储。
+
+    同一个 session_id 可以有多条运行记录：首次规划、后续追问、天气咨询都单独保存。
+    读取会话列表时会选择“展示用主结果”，避免最后一次轻咨询覆盖已有规划方案。
+    """
+
     def save_run(self, *, session_id: str, user_id: str, request_text: str, response: dict[str, Any]) -> None:
+        """保存一次请求响应快照。"""
         now = datetime.now(timezone.utc).isoformat()
         run_id = f"run-{uuid.uuid4().hex[:12]}"
         payload = json.dumps(response, ensure_ascii=False)
@@ -95,12 +110,14 @@ class SessionRunRepository:
         save_json_records(SESSION_RUNS_PATH, records)
 
     def get_run(self, *, session_id: str) -> dict[str, Any] | None:
+        """读取一个 session 的主展示记录。"""
         records = self.list_session_runs(session_id=session_id)
         if not records:
             return None
         return self._select_session_display_run(records)
 
     def list_session_runs(self, *, session_id: str) -> list[dict[str, Any]]:
+        """读取指定 session 下所有运行记录，按时间倒序。"""
         if sqlite_available():
             with get_connection() as connection:
                 rows = connection.execute(
@@ -120,6 +137,7 @@ class SessionRunRepository:
         return normalized
 
     def list_runs(self, *, user_id: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
+        """按会话聚合最近运行记录，并返回每个会话的主展示记录。"""
         resolved_limit = max(1, min(limit, 100))
         session_runs = self._list_all_runs(user_id=user_id)
         grouped: dict[str, list[dict[str, Any]]] = {}
@@ -131,6 +149,7 @@ class SessionRunRepository:
         return normalized[:resolved_limit]
 
     def find_latest_planning_session_id(self, *, user_id: str) -> str | None:
+        """找到最近一个完整规划会话，用于无 session_id 的追问自动续接。"""
         for run in self.list_runs(user_id=user_id, limit=100):
             response = run.get("response") or {}
             task_profile = response.get("task_profile") or {}
@@ -143,6 +162,7 @@ class SessionRunRepository:
         return None
 
     def _list_all_runs(self, *, user_id: str | None = None) -> list[dict[str, Any]]:
+        """读取所有运行记录，可按 user_id 过滤。"""
         if sqlite_available():
             with get_connection() as connection:
                 if user_id:
@@ -171,6 +191,7 @@ class SessionRunRepository:
         return normalized
 
     def delete_run(self, *, session_id: str) -> bool:
+        """删除指定 session_id 下的全部运行记录。"""
         if sqlite_available():
             with get_connection() as connection:
                 cursor = connection.execute(
@@ -190,6 +211,7 @@ class SessionRunRepository:
         return deleted
 
     def _deserialize_row(self, row: dict[str, Any]) -> dict[str, Any]:
+        """把存储层 response_json 反序列化成 API/服务层使用的 response 对象。"""
         return {
             "run_id": row.get("run_id"),
             "session_id": row["session_id"],
@@ -200,6 +222,11 @@ class SessionRunRepository:
         }
 
     def _select_session_display_run(self, records: list[dict[str, Any]]) -> dict[str, Any]:
+        """选择一个会话在历史列表中应该展示的记录。
+
+        优先展示最近的 travel_planning 结果，同时把真正最新的一轮放到 latest_run，保证
+        前端既能展示主方案，也能知道用户最近一次追问是什么。
+        """
         ranked = sorted(records, key=lambda item: item["created_at"], reverse=True)
         planning_candidates = [
             item
