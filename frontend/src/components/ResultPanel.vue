@@ -5,7 +5,17 @@
         <p class="panel-kicker">Plan</p>
         <h2>{{ isConsultingMode ? '回答已经整理好了' : '方案已经整理好了' }}</h2>
       </div>
-      <span class="badge">{{ destinationLabel }}{{ !isConsultingMode ? ` / ${summary.days || 0} 天` : '' }}</span>
+      <div class="result-panel-actions">
+        <span class="badge">{{ destinationLabel }}{{ !isConsultingMode ? ` / ${summary.days || 0} 天` : '' }}</span>
+        <details v-if="showExportActions" ref="exportMenuRef" class="export-menu">
+          <summary class="secondary export-menu-trigger">导出方案</summary>
+          <div class="export-menu-panel">
+            <p class="export-menu-title">HTML 方案页</p>
+            <button class="export-menu-item" type="button" @click="previewExportPlan">预览页面</button>
+            <button class="export-menu-item" type="button" @click="downloadExportPlan">下载 HTML</button>
+          </div>
+        </details>
+      </div>
     </div>
 
     <section v-if="isConsultingMode" class="consulting-hero">
@@ -70,7 +80,7 @@
 
       <div v-if="tripSnapshotCards.length" class="subsection">
         <h3>先感受这趟旅行的样子</h3>
-        <div class="trip-snapshot-grid">
+        <div class="trip-snapshot-grid trip-snapshot-grid-compact">
           <article v-for="card in tripSnapshotCards" :key="card.key" class="snapshot-card">
             <div class="snapshot-card-media recommendation-media" :class="{ 'is-loading': card.loading && !card.imageUrl }">
               <img
@@ -199,50 +209,6 @@
         </section>
 
         <div class="side-stack">
-          <section class="result-block">
-            <h3>住宿建议</h3>
-            <div class="recommendation-grid recommendation-grid-single" v-if="hotelShowcaseCards.length">
-              <article
-                v-for="item in hotelShowcaseCards"
-                :key="item.key"
-                class="recommendation-card recommendation-card-rich"
-                :class="{ 'recommendation-card-featured': item.featured }"
-              >
-                <div class="recommendation-media" :class="{ 'is-loading': item.loading && !item.imageUrl }">
-                  <img
-                    v-if="item.imageUrl"
-                    :src="item.imageUrl"
-                    :alt="item.imageAlt"
-                    class="recommendation-media-image"
-                    :srcset="item.imageSrcSet"
-                    sizes="(max-width: 960px) 100vw, 360px"
-                    :loading="item.imageLoading"
-                    :fetchpriority="item.imageFetchPriority"
-                    decoding="async"
-                  />
-                  <div v-else class="recommendation-media-placeholder">
-                    <span>{{ item.placeholder }}</span>
-                  </div>
-                  <span v-if="item.imageLabel" class="visual-media-badge">{{ item.imageLabel }}</span>
-                </div>
-                <div class="recommendation-head">
-                  <strong>{{ item.title }}</strong>
-                  <div class="recommendation-head-side">
-                    <span class="chip">{{ item.priceLabel }}</span>
-                    <span class="chip subtle">{{ item.badge }}</span>
-                  </div>
-                </div>
-                <p class="recommendation-meta-line">{{ item.meta }}</p>
-                <p class="recommendation-summary">{{ item.summary }}</p>
-                <div class="inline-chip-row compact-chip-row" v-if="item.chips.length">
-                  <span class="chip subtle" v-for="chip in item.chips" :key="chip">{{ chip }}</span>
-                </div>
-                <p v-if="item.supporting" class="muted-text compact-copy recommendation-supporting">{{ item.supporting }}</p>
-              </article>
-            </div>
-            <p v-else class="muted-text">系统还没有拿到住宿结果。</p>
-          </section>
-
           <details class="result-block budget-collapse">
             <summary class="budget-collapse-summary">
               <div>
@@ -366,83 +332,6 @@
         </div>
       </section>
 
-      <div class="result-grid result-grid-expanded">
-        <section class="result-block">
-          <h3>值得优先看的点</h3>
-          <div class="recommendation-grid" v-if="attractionShowcaseCards.length">
-            <article v-for="item in attractionShowcaseCards" :key="item.key" class="recommendation-card recommendation-card-rich">
-              <div class="recommendation-media" :class="{ 'is-loading': item.loading && !item.imageUrl }">
-                <img
-                  v-if="item.imageUrl"
-                  :src="item.imageUrl"
-                  :alt="item.imageAlt"
-                  class="recommendation-media-image"
-                  :srcset="item.imageSrcSet"
-                  sizes="(max-width: 960px) 100vw, 360px"
-                  :loading="item.imageLoading"
-                  :fetchpriority="item.imageFetchPriority"
-                  decoding="async"
-                />
-                <div v-else class="recommendation-media-placeholder">
-                  <span>{{ item.placeholder }}</span>
-                </div>
-                <span v-if="item.imageLabel" class="visual-media-badge">{{ item.imageLabel }}</span>
-              </div>
-              <div class="recommendation-head">
-                <strong>{{ item.title }}</strong>
-                <div class="recommendation-head-side">
-                  <span class="chip">{{ item.badge }}</span>
-                </div>
-              </div>
-              <p class="recommendation-meta-line">{{ item.meta }}</p>
-              <p class="recommendation-summary">{{ item.summary }}</p>
-              <div class="inline-chip-row compact-chip-row" v-if="item.chips.length">
-                <span class="chip subtle" v-for="chip in item.chips" :key="chip">{{ chip }}</span>
-              </div>
-            </article>
-          </div>
-          <p v-else class="muted-text">当前还没有可单独展开的景点推荐。</p>
-        </section>
-
-        <section class="result-block">
-          <h3>吃什么更顺路</h3>
-          <div class="recommendation-grid" v-if="foodShowcaseCards.length">
-            <article v-for="item in foodShowcaseCards" :key="item.key" class="recommendation-card recommendation-card-rich">
-              <div class="recommendation-media" :class="{ 'is-loading': item.loading && !item.imageUrl }">
-                <img
-                  v-if="item.imageUrl"
-                  :src="item.imageUrl"
-                  :alt="item.imageAlt"
-                  class="recommendation-media-image"
-                  :srcset="item.imageSrcSet"
-                  sizes="(max-width: 960px) 100vw, 360px"
-                  :loading="item.imageLoading"
-                  :fetchpriority="item.imageFetchPriority"
-                  decoding="async"
-                />
-                <div v-else class="recommendation-media-placeholder">
-                  <span>{{ item.placeholder }}</span>
-                </div>
-                <span v-if="item.imageLabel" class="visual-media-badge">{{ item.imageLabel }}</span>
-              </div>
-              <div class="recommendation-head">
-                <strong>{{ item.title }}</strong>
-                <div class="recommendation-head-side">
-                  <span class="chip subtle">{{ item.badge }}</span>
-                </div>
-              </div>
-              <p class="recommendation-meta-line">{{ item.meta }}</p>
-              <p class="recommendation-summary">{{ item.summary }}</p>
-              <div class="inline-chip-row compact-chip-row" v-if="item.chips.length">
-                <span class="chip subtle" v-for="chip in item.chips" :key="chip">{{ chip }}</span>
-              </div>
-              <p v-if="item.supporting" class="muted-text compact-copy recommendation-supporting">{{ item.supporting }}</p>
-            </article>
-          </div>
-          <p v-else class="muted-text">这轮结果里没有单独抽出餐饮点，如果你愿意，我可以继续细化到早餐、正餐或夜宵。</p>
-        </section>
-      </div>
-
       <div class="subsection" v-if="tripTips.length">
         <h3>出行提醒</h3>
         <div class="trip-tips-list">
@@ -473,6 +362,12 @@ import { computed, nextTick, ref, watch } from 'vue'
 import AmapTripMapPanel from './AmapTripMapPanel.vue'
 import { resetAmapLoader } from '../lib/amap'
 import { resolveAssetUrl } from '../lib/api'
+import {
+  buildPlanExportFilename,
+  buildPlanExportHtml,
+  downloadPlanExportHtml,
+  previewPlanExportHtml,
+} from '../lib/planExport'
 import TripMapPanel from './TripMapPanel.vue'
 
 const TAG_LABELS = {
@@ -519,6 +414,8 @@ const props = defineProps({
   },
 })
 
+const exportMenuRef = ref(null)
+
 const taskProfile = computed(() => props.data.taskProfile || null)
 const finalPlan = computed(() => props.data.finalPlan || {})
 const summary = computed(() => finalPlan.value.summary || {})
@@ -560,6 +457,7 @@ const paceLabel = computed(() => {
 })
 const consultingType = computed(() => finalPlan.value.consultingType || 'generic')
 const consultingAnswer = computed(() => finalPlan.value.consultingAnswer || llmSummary.value || '暂无结果')
+const showExportActions = computed(() => !isConsultingMode.value)
 const mapDisplayMode = computed(() => (isConsultingMode.value ? 'consulting' : 'planning'))
 const activeMapComponent = computed(() => {
   const hasAmapKey = Boolean(import.meta.env.VITE_AMAP_JS_KEY)
@@ -698,6 +596,40 @@ const mapSelectionHint = computed(() => {
   return '点击后的地图已经切到对应天数，不用滚动页面也能先在这里确认联动状态。'
 })
 
+const exportPayload = computed(() => ({
+  title: `${destinationLabel.value || '旅行方案'} 导出页`,
+  destinationLabel: destinationLabel.value,
+  dayCount: summary.value.days || dailyGuide.value.length || days.value.length || 0,
+  generatedAt: new Date(),
+  summaryHtml: displaySummary.value ? displaySummaryHtml.value : planningNarrativeHtml.value,
+  summaryTags: summary.value.tags || [],
+  planFocusChips: planFocusChips.value,
+  planHighlights: planHighlights.value,
+  tripSnapshotCards: tripSnapshotCards.value,
+  dailyGuide: dailyGuide.value,
+  days: days.value,
+  hotelCards: hotelShowcaseCards.value,
+  attractionCards: attractionShowcaseCards.value,
+  foodCards: foodShowcaseCards.value,
+  budget: budget.value,
+  budgetInsights: budgetInsights.value,
+  tripTips: tripTips.value,
+  primaryHotelName: primaryHotel.value?.name || '待生成',
+  paceLabel: paceLabel.value,
+  totalBudget: summary.value.totalBudget,
+  summaryTagsText: summaryTagsText.value,
+  budgetSummaryLine: budgetSummaryLine.value,
+  taskTypeLabel: isConsultingMode.value ? '即时回答' : '旅行规划',
+}))
+
+const exportFilename = computed(() =>
+  buildPlanExportFilename({
+    destinationLabel: destinationLabel.value,
+    dayCount: summary.value.days || dailyGuide.value.length || days.value.length || 0,
+    generatedAt: new Date(),
+  })
+)
+
 watch(
   dayTabs,
   (tabs) => {
@@ -733,6 +665,24 @@ function retryAmap() {
   resetAmapLoader()
   amapFailed.value = false
   amapFailureMessage.value = ''
+}
+
+function closeExportMenu() {
+  if (exportMenuRef.value) {
+    exportMenuRef.value.open = false
+  }
+}
+
+function downloadExportPlan() {
+  const html = buildPlanExportHtml(exportPayload.value)
+  downloadPlanExportHtml(html, exportFilename.value)
+  closeExportMenu()
+}
+
+function previewExportPlan() {
+  const html = buildPlanExportHtml(exportPayload.value)
+  previewPlanExportHtml(html, exportFilename.value)
+  closeExportMenu()
 }
 
 async function focusMapDay(day) {
@@ -998,7 +948,7 @@ function renderSummaryMarkdown(value) {
     }
 
     flushList()
-    paragraph.push(escapeHtml(line))
+    paragraph.push(line)
   })
 
   flushParagraph()
@@ -1007,7 +957,7 @@ function renderSummaryMarkdown(value) {
 }
 
 function renderInlineMarkdown(value) {
-  return value
+  return escapeHtml(value)
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/__([^_]+)__/g, '<strong>$1</strong>')
