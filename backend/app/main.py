@@ -17,6 +17,7 @@ from app.image_generation.service import ImageGenerationService
 from app.integrations.amap_geo_service import AmapGeoService
 from app.llm.openai_client import OpenAIPlannerClient
 from app.media.static_files import CachedStaticFiles
+from app.memory.memory_extractor import MemoryExtractor
 from app.memory.memory_injection_service import MemoryInjectionService
 from app.memory.memory_service import MemoryService
 from app.planning.planner_service import PlannerService
@@ -57,11 +58,13 @@ def create_app() -> FastAPI:
     memory_repository = MemoryRepository()
     session_run_repository = SessionRunRepository()
     memory_service = MemoryService(memory_repository)
+    slot_extractor = SlotExtractor()
+    memory_extractor = MemoryExtractor(slot_extractor=slot_extractor)
     image_generation_service = ImageGenerationService(settings)
     amap_geo_service = AmapGeoService(settings)
     geo_presentation_service = GeoPresentationService(amap_geo_service=amap_geo_service)
     planner_service = PlannerService(
-        slot_extractor=SlotExtractor(),
+        slot_extractor=slot_extractor,
         memory_service=memory_service,
         retrieval_service=RetrievalService(settings=settings),
         tool_service=tool_service,
@@ -73,6 +76,7 @@ def create_app() -> FastAPI:
         task_router=TaskRouter(),
         session_context_service=SessionContextService(session_run_repository),
         memory_injection_service=MemoryInjectionService(),
+        memory_extractor=memory_extractor,
         geo_presentation_service=geo_presentation_service,
         image_generation_service=image_generation_service,
         graph_expansion_service=graph_expansion_service,
@@ -99,6 +103,7 @@ def create_app() -> FastAPI:
             tool_service=tool_service,
             image_generation_service=image_generation_service,
             geo_presentation_service=geo_presentation_service,
+            memory_extractor=memory_extractor,
         )
     )
     return app

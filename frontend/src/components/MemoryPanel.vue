@@ -30,6 +30,20 @@
       <p class="muted-text" v-else>当前用户没有长期 Memory，链路会只使用本轮输入和短期状态。</p>
     </div>
 
+    <div class="subsection" v-if="memoryProfiles.length">
+      <div class="memory-section-head">
+        <h3>memory_profiles</h3>
+        <span class="chip subtle">{{ memoryProfiles.length }} profiles</span>
+      </div>
+      <div class="memory-summary-grid">
+        <article v-for="item in memoryProfiles" :key="item.key" class="memory-summary-card">
+          <span class="metric-label">{{ item.label }}</span>
+          <strong>{{ item.displayValue }}</strong>
+          <span class="memory-meta">{{ item.explanation }}</span>
+        </article>
+      </div>
+    </div>
+
     <details class="memory-collapse" :open="Boolean(latestUpdates.length)">
       <summary class="memory-collapse-summary">
         <span>memory_writeback</span>
@@ -99,9 +113,18 @@ const LABEL_MAP = {
   preference_food: '餐饮偏好',
   preference_culture: '文化偏好',
   preference_nature: '自然偏好',
+  preference_museum: '博物馆偏好',
+  preference_citywalk: 'Citywalk 偏好',
   preference_metro: '地铁出行偏好',
   preference_high_speed_rail: '高铁出行偏好',
+  preference_family: '亲子偏好',
   travel_pace: '行程节奏',
+  'profile:accommodation': '住宿画像',
+  'profile:food': '餐饮画像',
+  'profile:interests': '兴趣画像',
+  'profile:transport': '交通画像',
+  'profile:pace': '节奏画像',
+  'profile:traveler': '出行人群画像',
 }
 
 const VALUE_MAP = {
@@ -144,6 +167,24 @@ const EXPLANATION_MAP = {
     balanced: '行程节奏保持均衡。',
     intensive: '行程节奏会更紧凑一些。',
   },
+  'profile:accommodation': {
+    __default: '住宿维度已沉淀为稳定画像。',
+  },
+  'profile:food': {
+    __default: '餐饮维度已沉淀为稳定画像。',
+  },
+  'profile:interests': {
+    __default: '兴趣维度已沉淀为稳定画像。',
+  },
+  'profile:transport': {
+    __default: '交通维度已沉淀为稳定画像。',
+  },
+  'profile:pace': {
+    __default: '节奏维度已沉淀为稳定画像。',
+  },
+  'profile:traveler': {
+    __default: '出行人群维度已沉淀为稳定画像。',
+  },
 }
 
 const latestUpdateMap = computed(() => {
@@ -167,16 +208,64 @@ const activeMemoryCards = computed(() => {
   }))
 })
 
+const memoryProfiles = computed(() => {
+  return props.memories
+    .filter((item) => String(item.key || '').startsWith('profile:'))
+    .map((item) => {
+      const parsed = safeParse(item.value)
+      return {
+        key: item.key,
+        label: displayLabel(item.key),
+        displayValue: profileDisplayValue(parsed),
+        explanation: profileExplanation(item.key, parsed),
+      }
+    })
+})
+
 function displayLabel(key) {
   return LABEL_MAP[key] || key
 }
 
 function displayValue(key, value) {
+  if (String(key || '').startsWith('profile:')) {
+    const parsed = safeParse(value)
+    return profileDisplayValue(parsed)
+  }
   return VALUE_MAP[value] || value
 }
 
 function explainValue(key, value) {
+  if (String(key || '').startsWith('profile:')) {
+    return profileExplanation(key, safeParse(value))
+  }
   return EXPLANATION_MAP[key]?.[value] || '该偏好会参与后续旅行规划。'
+}
+
+function profileDisplayValue(parsed) {
+  const activeValues = parsed?.active_values || []
+  if (!activeValues.length) {
+    return '未激活'
+  }
+  return activeValues.join(' / ')
+}
+
+function profileExplanation(key, parsed) {
+  const activeValues = parsed?.active_values || []
+  if (!activeValues.length) {
+    return '该维度目前没有稳定偏好。'
+  }
+  return `${activeValues.length} 条稳定信号，后续会优先沿用。`
+}
+
+function safeParse(value) {
+  if (typeof value !== 'string') {
+    return null
+  }
+  try {
+    return JSON.parse(value)
+  } catch {
+    return null
+  }
 }
 
 function isOverridden(item) {

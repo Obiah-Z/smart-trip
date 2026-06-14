@@ -55,10 +55,15 @@ class ResponseNodes:
             assembled_context=state["assembled_context"],
             final_plan=final_plan,
         )
-        memory_updates = service._memory_service.persist_preferences(
+        memory_writeback_source = service._resolve_memory_writeback_source(state=state)
+        memory_updates = service._memory_service.persist_extracted_signals(
             user_id=state["user_id"],
-            preferences=state["structured_constraints"]["preferences"],
-            pace=state["structured_constraints"]["pace"],
+            signal_names=[item["name"] for item in memory_writeback_source["signals"]],
+            pace=memory_writeback_source["pace"],
+            pace_explicit=memory_writeback_source["pace_explicit"],
+            source_text=memory_writeback_source["source_text"],
+            session_id=state.get("resolved_session_id"),
+            followup_replan=bool(state["structured_constraints"].get("_followup_replan")),
         )
         return {
             "final_plan": final_plan,

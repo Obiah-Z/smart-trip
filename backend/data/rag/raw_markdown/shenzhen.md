@@ -19,7 +19,7 @@ section_counts:
   attractions: 7
   hotels: 4
   has_weather: 1
-generated_at: "2026-06-14T06:17:55.529327+00:00"
+generated_at: "2026-01-01T00:00:00+00:00"
 ---
 
 # 深圳旅行知识库

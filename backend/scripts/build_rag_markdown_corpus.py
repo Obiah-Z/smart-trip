@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from datetime import datetime, timezone
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
@@ -10,6 +9,7 @@ DATA_DIR = BACKEND_ROOT / "data"
 KNOWLEDGE_PATH = DATA_DIR / "knowledge" / "cities.json"
 TRAVEL_DATA_PATH = DATA_DIR / "mock" / "travel_data.json"
 RAW_MARKDOWN_DIR = DATA_DIR / "rag" / "raw_markdown"
+FIXED_GENERATED_AT = "2026-01-01T00:00:00+00:00"
 
 
 def load_json(path: Path) -> dict:
@@ -55,7 +55,7 @@ def render_city_markdown(*, city_doc: dict, travel_data: dict) -> str:
     food_docs = [item for item in documents if item.get("topic") == "food"]
     hotel_docs = [item for item in documents if item.get("topic") == "hotel_area"]
     other_docs = [item for item in documents if item.get("topic") not in {"trip_route", "food", "hotel_area"}]
-    generated_at = datetime.now(timezone.utc).isoformat()
+    generated_at = FIXED_GENERATED_AT
     section_counts = {
         "route_docs": len(route_docs),
         "food_docs": len(food_docs),
@@ -246,11 +246,12 @@ def build_markdown_corpus() -> list[Path]:
         city = city_doc["city"]
         content = render_city_markdown(city_doc=city_doc, travel_data=travel_data)
         file_path = RAW_MARKDOWN_DIR / f"{slugify_city(city)}.md"
-        file_path.write_text(content, encoding="utf-8")
+        _write_text_if_changed(file_path, content)
         written_files.append(file_path)
 
     readme_path = RAW_MARKDOWN_DIR / "README.md"
-    readme_path.write_text(
+    _write_text_if_changed(
+        readme_path,
         "\n".join(
             [
                 "# Raw Markdown Corpus",
@@ -292,10 +293,20 @@ def build_markdown_corpus() -> list[Path]:
             ]
         )
         + "\n",
-        encoding="utf-8",
     )
     written_files.append(readme_path)
     return written_files
+
+
+def _write_text_if_changed(path: Path, content: str) -> None:
+    if path.exists():
+        try:
+            current = path.read_text(encoding="utf-8")
+        except OSError:
+            current = None
+        if current == content:
+            return
+    path.write_text(content, encoding="utf-8")
 
 
 def main() -> None:

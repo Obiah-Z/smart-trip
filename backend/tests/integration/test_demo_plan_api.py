@@ -1008,6 +1008,46 @@ def test_demo_plan_api_rainy_day_family_consulting_uses_attraction_flow() -> Non
     assert "上海" in payload["final_plan"]["consultingAnswer"]
 
 
+def test_memory_extract_api_returns_profile_signals() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/memory/extract",
+        json={
+            "message": "酒店尽量安静，不想吃本地特色，节奏紧张",
+            "session_context": {},
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert {item["name"] for item in payload["signals"]} == {"quiet_hotel", "avoid_local_food", "intensive"}
+    assert payload["pace"] == "intensive"
+    assert payload["pace_explicit"] is True
+
+
+def test_memory_audit_api_returns_structured_memory_view() -> None:
+    client = TestClient(app)
+
+    plan_response = client.post(
+        "/api/demo/plan",
+        json={
+            "user_id": "integration-memory-audit-user",
+            "message": "帮我规划一个杭州三日游，酒店尽量安静，不想吃本地特色，节奏紧张",
+        },
+    )
+
+    assert plan_response.status_code == 200
+    audit_response = client.get("/api/memory/integration-memory-audit-user/audit")
+
+    assert audit_response.status_code == 200
+    payload = audit_response.json()
+    assert payload["user_id"] == "integration-memory-audit-user"
+    assert payload["profile_count"] >= 1
+    assert "accommodation" in payload["profiles"]
+    assert payload["recommendations"]
+
+
 def test_demo_session_open_hydrates_legacy_map_visual_for_shanghai_consulting() -> None:
     os.environ["OPENAI_MODE"] = "mock"
     client = TestClient(app)

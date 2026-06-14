@@ -72,6 +72,54 @@ class MemoryItem(BaseModel):
     updated_at: str
 
 
+class MemoryExtractRequest(BaseModel):
+    """从自然语言抽取长期偏好信号的请求。"""
+
+    message: str
+    session_id: str | None = None
+    session_context: dict[str, Any] = Field(default_factory=dict)
+
+
+class MemorySignalItem(BaseModel):
+    """抽取出的单条长期偏好信号。"""
+
+    name: str
+    dimension: str
+    family: str
+    polarity: str
+    label: str
+    confidence: float
+    evidence: str
+    source: str
+
+
+class MemoryExtractResult(BaseModel):
+    """Memory 抽取结果。"""
+
+    signals: list[MemorySignalItem]
+    preferences: list[str]
+    pace: str
+    pace_explicit: bool
+    source_text: str
+    extraction_steps: list[str]
+
+
+class MemoryAuditResponse(BaseModel):
+    """长期 Memory 审计结果。"""
+
+    user_id: str
+    total_records: int
+    profile_count: int
+    legacy_count: int
+    unknown_count: int
+    profiles: dict[str, Any]
+    legacy_records: list[dict[str, Any]]
+    shadowed_legacy_records: list[dict[str, Any]]
+    unknown_records: list[dict[str, Any]]
+    conflict_families: dict[str, list[dict[str, Any]]]
+    recommendations: list[str]
+
+
 class MemoryUpdateItem(BaseModel):
     """本轮规划自动写回的 Memory 记录。"""
 

@@ -28,14 +28,19 @@ class MemoryRepository:
         if sqlite_available():
             with get_connection() as connection:
                 rows = connection.execute(
-                    "SELECT user_id, key, value, scope, updated_at FROM user_memory WHERE user_id = ? ORDER BY key ASC",
+                    """
+                    SELECT user_id, key, value, scope, updated_at
+                    FROM user_memory
+                    WHERE user_id = ?
+                    ORDER BY updated_at DESC, key ASC
+                    """,
                     (user_id,),
                 ).fetchall()
             return [dict(row) for row in rows]
 
         records = load_json_records(MEMORY_PATH)
         filtered = [record for record in records if record["user_id"] == user_id]
-        return sorted(filtered, key=lambda item: item["key"])
+        return sorted(filtered, key=lambda item: (item.get("updated_at", ""), item.get("key", "")), reverse=True)
 
     def upsert_memory(self, *, user_id: str, key: str, value: str, scope: str) -> None:
         """按 user_id + key 覆盖写入 Memory。"""

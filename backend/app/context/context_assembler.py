@@ -67,10 +67,30 @@ class ContextAssembler:
                 "\n".join([f"- {item['key']}: {item['value']}" for item in memory_context['relevant_long_term_memory']])
                 or "- none"
             ),
+            "[Memory Profile]\n"
+            + (
+                "\n".join(
+                    [
+                        f"- {dimension}: {', '.join(profile.get('active_values', [])) or 'none'}"
+                        for dimension, profile in memory_context.get("memory_profile", {}).items()
+                    ]
+                )
+                or "- none"
+            ),
             "[Memory Injection Strategy]\n"
             + (
                 "\n".join([f"- {item}" for item in memory_context.get("selection_reasons", [])])
                 or "- no explicit strategy"
+            ),
+            "[Suppressed Memory]\n"
+            + (
+                "\n".join(
+                    [
+                        f"- {item.get('key', '')}: {item.get('reason', '')}"
+                        for item in memory_context.get("suppressed_memory", [])
+                    ]
+                )
+                or "- none"
             ),
             "[Retrieved Knowledge]\n"
             + ("\n".join([f"- {item}" for item in retrieval_context['injected_knowledge']]) or "- none"),

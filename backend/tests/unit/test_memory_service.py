@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from app.db import repositories as repository_module
@@ -42,6 +44,9 @@ def test_persist_preferences_overrides_conflicting_preferences() -> None:
 
     memories = {item["key"]: item["value"] for item in service.list_memories(user_id="test-user-preference-override")}
 
+    profile = json.loads(memories["profile:accommodation"])
+    assert profile["dimension"] == "accommodation"
+    assert profile["active_values"] == ["lively_hotel"]
     assert memories["hotel_style"] == "prefer_lively_location"
     assert memories["preference_quiet_hotel"] == "avoid_quiet_hotel"
     assert memories["preference_local_food"] == "avoid_local_food"
@@ -63,3 +68,71 @@ def test_persist_preferences_keeps_family_preference() -> None:
     assert memories["hotel_style"] == "prefer_quiet_location"
     assert memories["preference_local_food"] == "local_food"
     assert memories["travel_pace"] == "relaxed"
+
+
+def test_persist_preferences_does_not_write_default_balanced_pace() -> None:
+    init_db()
+    service = MemoryService(MemoryRepository())
+    updates = service.persist_preferences(
+        user_id="test-user-default-pace",
+        preferences=[],
+        pace="balanced",
+        pace_explicit=False,
+    )
+
+    memories = {item["key"]: item["value"] for item in service.list_memories(user_id="test-user-default-pace")}
+
+    assert updates == []
+    assert "travel_pace" not in memories
+    assert "profile:pace" not in memories
+
+
+def test_persist_preferences_merges_profile_dimension_without_new_top_level_key() -> None:
+    init_db()
+    service = MemoryService(MemoryRepository())
+    service.persist_preferences(
+        user_id="test-user-profile-merge",
+        preferences=["quiet_hotel"],
+        pace="balanced",
+        pace_explicit=False,
+        source_text="酒店尽量安静",
+        session_id="session-1",
+    )
+    service.persist_preferences(
+        user_id="test-user-profile-merge",
+        preferences=["comfortable_hotel"],
+        pace="balanced",
+        pace_explicit=False,
+        source_text="住宿舒适度高一些",
+        session_id="session-1",
+    )
+
+    memories = {item["key"]: item["value"] for item in service.list_memories(user_id="test-user-profile-merge")}
+    profile = json.loads(memories["profile:accommodation"])
+
+    assert set(profile["active_values"]) == {"quiet_hotel", "comfortable_hotel"}
+    assert "profile:accommodation" in memories
+
+
+def test_memory_audit_groups_profiles_and_shadowed_records() -> None:
+    init_db()
+    service = MemoryService(MemoryRepository())
+    service.persist_preferences(
+        user_id="test-user-audit",
+        preferences=["quiet_hotel", "avoid_local_food", "family"],
+        pace="relaxed",
+        source_text="酒店尽量安静，不吃本地特色，适合亲子",
+        session_id="session-audit",
+    )
+    service.upsert_memory(user_id="test-user-audit", key="hotel_style", value="prefer_quiet_location", scope="travel_preference")
+    service.upsert_memory(user_id="test-user-audit", key="custom_note", value="manual-note", scope="user_preference")
+
+    audit = service.audit(user_id="test-user-audit")
+
+    assert audit["user_id"] == "test-user-audit"
+    assert audit["profile_count"] >= 1
+    assert "accommodation" in audit["profiles"]
+    assert audit["shadowed_legacy_records"]
+    assert any(item["key"] == "hotel_style" for item in audit["shadowed_legacy_records"])
+    assert any("profile" in item and "legacy" in item for item in audit["recommendations"])
+    assert any(item["key"] == "custom_note" for item in audit["unknown_records"])

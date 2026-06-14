@@ -8,6 +8,7 @@ from app.context.context_assembler import ContextAssembler
 from app.context.session_context_service import SessionContextService
 from app.db.repositories import SessionRunRepository
 from app.llm.openai_client import OpenAIPlannerClient
+from app.memory.memory_extractor import MemoryExtractor
 from app.memory.memory_injection_service import MemoryInjectionService
 from app.memory.memory_service import MemoryService
 from app.planning.revision_intent import RevisionIntent, RevisionIntentResolver
@@ -81,6 +82,7 @@ class PlannerService:
         task_router: TaskRouter,
         session_context_service: SessionContextService,
         memory_injection_service: MemoryInjectionService,
+        memory_extractor: MemoryExtractor,
         geo_presentation_service: GeoPresentationService,
         image_generation_service,
         graph_expansion_service=None,
@@ -97,6 +99,7 @@ class PlannerService:
         self._task_router = task_router
         self._session_context_service = session_context_service
         self._memory_injection_service = memory_injection_service
+        self._memory_extractor = memory_extractor
         self._geo_presentation_service = geo_presentation_service
         self._image_generation_service = image_generation_service
         self._graph_expansion_service = graph_expansion_service
@@ -557,6 +560,20 @@ class PlannerService:
 
     def _contains_explicit_days(self, message: str) -> bool:
         return bool(re.search(r"(\d+)\s*(?:天|日游)|([一二三四五六七两])\s*(?:天|日游)", message))
+
+    def _resolve_memory_writeback_source(self, *, state: dict[str, Any]) -> dict[str, Any]:
+        """决定哪些本轮信息允许写入长期 Memory。
+
+        长期 Memory 只记录用户明确表达的可复用偏好。追问场景下，继承自上一轮的预算、
+        节奏、住宿等约束不能被当作新偏好反复写入；澄清恢复则允许回看 initial_request_text，
+        因为用户的明确偏好可能出现在缺天数的上一轮。
+        """
+        extraction = self._memory_extractor.extract(
+            message=state["message"],
+            slots=state["slots"],
+            session_context=state["session_context"],
+        )
+        return extraction.to_dict()
 
     def _latest_missing_fields(self, *, session_context: dict[str, Any]) -> list[str]:
         final_plan = session_context.get("latest_final_plan") or {}

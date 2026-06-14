@@ -34,6 +34,8 @@ class ContextNodes:
             "short_term_state": memory_context_model.short_term_state,
             "selection_reasons": memory_selection["selection_reasons"],
             "dropped_memory_count": memory_selection["dropped_memory_count"],
+            "suppressed_memory": memory_selection.get("suppressed_memory", []),
+            "memory_profile": memory_selection.get("memory_profile", {}),
         }
         return {
             "memory_context": memory_context,

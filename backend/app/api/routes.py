@@ -11,6 +11,9 @@ from app.models.schemas import (
     AttractionImageGenerateResponse,
     DemoPlanRequest,
     DemoPlanResponse,
+    MemoryAuditResponse,
+    MemoryExtractRequest,
+    MemoryExtractResult,
     MemoryItem,
     MemoryUpsertRequest,
     SessionRunListItem,
@@ -72,6 +75,7 @@ def build_router(
     tool_service,
     image_generation_service,
     geo_presentation_service,
+    memory_extractor,
 ) -> APIRouter:
     """构建 API 路由。
 
@@ -189,10 +193,24 @@ def build_router(
         """查看指定用户的长期 Memory。"""
         return [MemoryItem(**item) for item in memory_service.list_memories(user_id=user_id)]
 
+    @router.get("/api/memory/{user_id}/audit", response_model=MemoryAuditResponse)
+    def audit_memory(user_id: str) -> MemoryAuditResponse:
+        """查看指定用户的长期 Memory 审计结果。"""
+        return MemoryAuditResponse(**memory_service.audit(user_id=user_id))
+
     @router.put("/api/memory/{user_id}")
     def upsert_memory(user_id: str, request: MemoryUpsertRequest) -> dict[str, str]:
         """手动写入或覆盖一条长期 Memory。"""
         memory_service.upsert_memory(user_id=user_id, key=request.key, value=request.value, scope=request.scope)
         return {"status": "ok"}
+
+    @router.post("/api/memory/extract", response_model=MemoryExtractResult)
+    def extract_memory(request: MemoryExtractRequest) -> MemoryExtractResult:
+        """把自然语言抽取为长期偏好信号，供调试和审计使用。"""
+        result = memory_extractor.extract(
+            message=request.message,
+            session_context=request.session_context,
+        )
+        return MemoryExtractResult(**result.to_dict())
 
     return router
