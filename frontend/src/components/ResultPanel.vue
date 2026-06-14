@@ -243,34 +243,42 @@
             <p v-else class="muted-text">系统还没有拿到住宿结果。</p>
           </section>
 
-          <section class="result-block">
-            <h3>花费分配</h3>
-            <div class="budget-list">
-              <div class="budget-row">
-                <span>交通</span>
-                <strong>{{ formatCurrency(budget.transport) }}</strong>
+          <details class="result-block budget-collapse">
+            <summary class="budget-collapse-summary">
+              <div>
+                <span class="metric-label">花费分配</span>
+                <strong>{{ budgetSummaryLine }}</strong>
               </div>
-              <div class="budget-row">
-                <span>住宿</span>
-                <strong>{{ formatCurrency(budget.accommodation) }}</strong>
+              <span class="budget-collapse-action">展开明细</span>
+            </summary>
+            <div class="budget-collapse-body">
+              <div class="budget-list">
+                <div class="budget-row">
+                  <span>交通</span>
+                  <strong>{{ formatCurrency(budget.transport) }}</strong>
+                </div>
+                <div class="budget-row">
+                  <span>住宿</span>
+                  <strong>{{ formatCurrency(budget.accommodation) }}</strong>
+                </div>
+                <div class="budget-row">
+                  <span>餐饮</span>
+                  <strong>{{ formatCurrency(budget.food) }}</strong>
+                </div>
+                <div class="budget-row">
+                  <span>门票</span>
+                  <strong>{{ formatCurrency(budget.tickets) }}</strong>
+                </div>
               </div>
-              <div class="budget-row">
-                <span>餐饮</span>
-                <strong>{{ formatCurrency(budget.food) }}</strong>
-              </div>
-              <div class="budget-row">
-                <span>门票</span>
-                <strong>{{ formatCurrency(budget.tickets) }}</strong>
+              <div class="insight-list" v-if="budgetInsights.length">
+                <article v-for="item in budgetInsights" :key="item.label" class="mini-card">
+                  <span class="metric-label">{{ item.label }}</span>
+                  <strong>{{ item.value }}</strong>
+                  <p>{{ item.detail }}</p>
+                </article>
               </div>
             </div>
-            <div class="insight-list" v-if="budgetInsights.length">
-              <article v-for="item in budgetInsights" :key="item.label" class="mini-card">
-                <span class="metric-label">{{ item.label }}</span>
-                <strong>{{ item.value }}</strong>
-                <p>{{ item.detail }}</p>
-              </article>
-            </div>
-          </section>
+          </details>
         </div>
       </div>
 
@@ -537,6 +545,13 @@ const amapFailureMessage = ref('')
 const isConsultingMode = computed(() => taskProfile.value?.task_type === 'travel_consulting')
 const destinationLabel = computed(() => summary.value.destinationCity || '待确认目的地')
 const summaryTagsText = computed(() => summary.value.tags?.length ? summary.value.tags.join(' / ') : '按你的要求整理')
+const budgetSummaryLine = computed(() => {
+  const total = formatCurrency(summary.value.totalBudget)
+  const parts = []
+  if (typeof budget.value.accommodation === 'number') parts.push(`住宿 ${formatCurrency(budget.value.accommodation)}`)
+  if (typeof budget.value.transport === 'number') parts.push(`交通 ${formatCurrency(budget.value.transport)}`)
+  return parts.length ? `${total} · ${parts.join(' / ')}` : total
+})
 const paceLabel = computed(() => {
   const tags = summary.value.tags || []
   if (tags.includes('intensive')) return '紧凑'

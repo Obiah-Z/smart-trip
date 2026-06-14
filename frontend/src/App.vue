@@ -57,6 +57,21 @@
             <span class="badge">{{ isConsultingMode ? '即时回答' : '可直接使用' }}</span>
           </div>
 
+          <section v-if="loading" class="generation-progress-card generation-progress-card-compact" aria-live="polite">
+            <div class="generation-progress-main">
+              <span class="generation-pulse"></span>
+              <div>
+                <p class="panel-kicker">Updating</p>
+                <h3>正在沿用当前方案重新整理</h3>
+                <p class="muted-text">{{ generationHintText }}</p>
+              </div>
+            </div>
+            <div class="generation-progress-side">
+              <span class="chip subtle">{{ generationProgressLabel }}</span>
+              <span class="generation-elapsed">{{ elapsedSeconds }}s</span>
+            </div>
+          </section>
+
           <ResultPanel
             :data="{ finalPlan: result.final_plan, llmOutput: result.llm_output, taskProfile: result.task_profile }"
             :show-evidence-details="false"
@@ -131,6 +146,32 @@
       </template>
 
       <section v-else class="stage-block input-stage user-entry-stage">
+        <section v-if="loading" class="generation-progress-card" aria-live="polite">
+          <div class="generation-progress-main">
+            <span class="generation-pulse"></span>
+            <div>
+              <p class="panel-kicker">Generating</p>
+              <h2>正在生成旅行建议</h2>
+              <p class="stage-copy">{{ generationHintText }}</p>
+            </div>
+          </div>
+          <div class="generation-progress-meter" aria-hidden="true">
+            <span
+              v-for="(step, index) in generationSteps"
+              :key="step.label"
+              class="generation-step"
+              :class="{ active: index === activeGenerationStepIndex, done: index < activeGenerationStepIndex }"
+            >
+              <span class="generation-step-dot"></span>
+              <span>{{ step.label }}</span>
+            </span>
+          </div>
+          <div class="generation-progress-footer">
+            <span>{{ generationProgressLabel }}</span>
+            <strong>{{ elapsedSeconds }}s</strong>
+          </div>
+        </section>
+
         <div class="start-panel-layout">
           <div class="start-panel-main">
             <div class="stage-header start-panel-header">
@@ -243,6 +284,10 @@
       </section>
 
       <template v-if="result">
+        <section class="stage-block developer-state-stage">
+          <StateMaintenancePanel :result="result" />
+        </section>
+
         <section class="stage-block developer-debug-stage">
           <div class="stage-header developer-stage-header">
             <div>
@@ -296,7 +341,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import ContextPanel from './components/ContextPanel.vue'
 import DevResponsePanel from './components/DevResponsePanel.vue'
 import MemoryPanel from './components/MemoryPanel.vue'
@@ -304,6 +349,7 @@ import PipelinePanel from './components/PipelinePanel.vue'
 import RequestForm from './components/RequestForm.vue'
 import ResultPanel from './components/ResultPanel.vue'
 import SessionHistoryPanel from './components/SessionHistoryPanel.vue'
+import StateMaintenancePanel from './components/StateMaintenancePanel.vue'
 import { createDemoPlan, deleteSession, getSession, listMemory, listSessions, upsertMemory } from './lib/api'
 
 const DEFAULT_MESSAGE = '帮我规划一个杭州三日游，预算3000，节奏轻松一点，酒店尽量安静，想吃本地特色'
@@ -311,6 +357,8 @@ const DEFAULT_MESSAGE = '帮我规划一个杭州三日游，预算3000，节奏
 const userId = ref('demo-user')
 const message = ref(DEFAULT_MESSAGE)
 const loading = ref(false)
+const elapsedSeconds = ref(0)
+const loadingTimer = ref(null)
 const errorMessage = ref('')
 const result = ref(null)
 const sessionId = ref('')
@@ -330,6 +378,12 @@ const userExamplePrompts = [
   '杭州天气怎么样',
   '推荐几个北京适合第一次去的景点',
   '帮我规划一个深圳周末两日游，预算2500',
+]
+const generationSteps = [
+  { label: '理解需求', hint: '正在抽取目的地、天数、预算、节奏和偏好。' },
+  { label: '检索信息', hint: '正在匹配旅行知识、景点、住宿和天气等可参考信息。' },
+  { label: '组合行程', hint: '正在把路线、住宿、餐饮和预算放到同一个方案里。' },
+  { label: '校验输出', hint: '正在检查是否遗漏约束，并整理成更容易阅读的结果。' },
 ]
 const isConsultingMode = computed(() => result.value?.task_profile?.task_type === 'travel_consulting')
 const isClarificationMode = computed(() => result.value?.final_plan?.consultingType === 'clarification')
@@ -393,6 +447,20 @@ const followupPlaceholder = computed(() => {
     return '比如：那明天的天气呢？或者顺便推荐几个适合第一次去的景点。'
   }
   return '比如：把预算提高到 10000，主要提升住宿舒适度；或者节奏改成更轻松一点。'
+})
+const activeGenerationStepIndex = computed(() => {
+  if (!loading.value) return 0
+  if (elapsedSeconds.value < 4) return 0
+  if (elapsedSeconds.value < 9) return 1
+  if (elapsedSeconds.value < 16) return 2
+  return 3
+})
+const generationProgressLabel = computed(() => generationSteps[activeGenerationStepIndex.value]?.label || '处理中')
+const generationHintText = computed(() => {
+  if (elapsedSeconds.value >= 18) {
+    return '复杂规划会比天气、景点问答更久一些；页面会保留当前状态，结果返回后会自动更新。'
+  }
+  return generationSteps[activeGenerationStepIndex.value]?.hint || '正在整理请求。'
 })
 const developerStatusCards = computed(() => {
   const selectedSkillCount = result.value?.selected_skills?.length || 0
@@ -463,7 +531,7 @@ async function runDemo() {
     return
   }
 
-  loading.value = true
+  startLoadingFeedback()
   errorMessage.value = ''
   try {
     result.value = await createDemoPlan({
@@ -482,7 +550,27 @@ async function runDemo() {
   } catch (error) {
     errorMessage.value = error.message || '暂时没能生成旅行建议'
   } finally {
-    loading.value = false
+    stopLoadingFeedback()
+  }
+}
+
+function startLoadingFeedback() {
+  loading.value = true
+  elapsedSeconds.value = 0
+  if (loadingTimer.value) {
+    window.clearInterval(loadingTimer.value)
+  }
+  const startedAt = Date.now()
+  loadingTimer.value = window.setInterval(() => {
+    elapsedSeconds.value = Math.max(0, Math.floor((Date.now() - startedAt) / 1000))
+  }, 500)
+}
+
+function stopLoadingFeedback() {
+  loading.value = false
+  if (loadingTimer.value) {
+    window.clearInterval(loadingTimer.value)
+    loadingTimer.value = null
   }
 }
 
@@ -550,6 +638,12 @@ function applyFollowupSuggestion(value) {
 onMounted(async () => {
   await loadMemory()
   await loadSessionHistory()
+})
+
+onUnmounted(() => {
+  if (loadingTimer.value) {
+    window.clearInterval(loadingTimer.value)
+  }
 })
 
 watch(userId, async () => {
