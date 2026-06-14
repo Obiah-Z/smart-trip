@@ -19,7 +19,7 @@ section_counts:
   attractions: 8
   hotels: 5
   has_weather: 1
-generated_at: "2026-06-12T08:29:45.415086+00:00"
+generated_at: "2026-06-14T06:17:55.530600+00:00"
 ---
 
 # 天津旅行知识库

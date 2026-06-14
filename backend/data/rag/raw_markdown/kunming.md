@@ -19,7 +19,7 @@ section_counts:
   attractions: 7
   hotels: 4
   has_weather: 1
-generated_at: "2026-06-12T08:29:45.414548+00:00"
+generated_at: "2026-06-14T06:17:55.529972+00:00"
 ---
 
 # 昆明旅行知识库
