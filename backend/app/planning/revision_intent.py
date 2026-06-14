@@ -22,6 +22,8 @@ class RevisionIntent:
 
 class RevisionIntentResolver:
     REPLAN_KEYWORDS = ("重新规划", "重做", "重排", "再规划", "再安排", "调整方案", "更新方案", "改一下")
+    DESTINATION_TERMS = ("目的地", "城市", "地方", "行程地", "旅行地")
+    DESTINATION_UPDATE_TERMS = ("换到", "换成", "换为", "改到", "改成", "改为", "调整到", "调整成", "变成", "改去", "换去")
     BUDGET_TERMS = ("预算", "总预算", "总体预算", "总花费", "总费用", "总价", "花费", "费用", "钱")
     HOTEL_TERMS = ("酒店", "住宿", "民宿", "住得", "住的", "舒适", "舒服", "安静", "热闹")
     PACE_TERMS = ("节奏", "轻松", "紧凑", "紧张", "特种兵", "慢一点")
@@ -72,6 +74,10 @@ class RevisionIntentResolver:
             return False
         return bool(self._affected_fields(message=normalized_message, slots=slots))
 
+    def has_destination_update_signal(self, *, message: str, slots) -> bool:
+        normalized_message = self.normalize_message(message)
+        return self._has_destination_update_signal(message=normalized_message, slots=slots)
+
     def normalize_message(self, message: str) -> str:
         return (
             message.replace("不想要去逛", "不想去")
@@ -98,6 +104,8 @@ class RevisionIntentResolver:
 
     def _affected_fields(self, *, message: str, slots) -> list[str]:
         fields: list[str] = []
+        if self._has_destination_update_signal(message=message, slots=slots):
+            fields.append("destination")
         if self._has_budget_signal(message=message, slots=slots):
             fields.append("budget")
         if getattr(slots, "days", None) is not None:
@@ -119,11 +127,31 @@ class RevisionIntentResolver:
     def _has_hard_revision_signal(self, *, message: str, slots) -> bool:
         return bool(
             self._has_budget_signal(message=message, slots=slots)
+            or self._has_destination_update_signal(message=message, slots=slots)
             or getattr(slots, "days", None) is not None
             or getattr(slots, "pace_explicit", False)
             or getattr(slots, "excluded_attractions", [])
             or any(token in message for token in self.REPLAN_KEYWORDS)
         )
+
+    def _has_destination_update_signal(self, *, message: str, slots) -> bool:
+        destination = getattr(slots, "destination", None)
+        if not getattr(slots, "destination_explicit", False) or not destination:
+            return False
+
+        escaped_destination = re.escape(str(destination))
+        direct_update = any(token in message for token in self.DESTINATION_UPDATE_TERMS)
+        destination_context = any(token in message for token in self.DESTINATION_TERMS)
+        update_terms_pattern = "|".join(map(re.escape, self.DESTINATION_UPDATE_TERMS))
+        if direct_update and (destination_context or re.search(rf"(?:{update_terms_pattern}).{{0,8}}{escaped_destination}", message)):
+            return True
+
+        destination_patterns = [
+            rf"(?:目的地|城市|地方|行程地|旅行地).{{0,8}}(?:换|改|调整|变).{{0,8}}{escaped_destination}",
+            rf"(?:换|改|调整).{{0,4}}(?:去|到|成|为).{{0,4}}{escaped_destination}",
+            rf"(?:改去|换去|改到|换到|改成|换成|改为|换为|调整到|调整成|变成).{{0,4}}{escaped_destination}",
+        ]
+        return any(re.search(pattern, message) for pattern in destination_patterns)
 
     def _has_budget_signal(self, *, message: str, slots) -> bool:
         if getattr(slots, "budget", None) is not None or getattr(slots, "budget_policy", None):
@@ -167,6 +195,8 @@ class RevisionIntentResolver:
         evidence: list[str] = []
         if "budget" in affected_fields:
             evidence.append("识别到预算或总花费调整表达")
+        if "destination" in affected_fields:
+            evidence.append("识别到目的地变更表达")
         if "excluded_attractions" in affected_fields:
             evidence.append("识别到排除景点表达")
         if "accommodation" in affected_fields:
@@ -180,6 +210,8 @@ class RevisionIntentResolver:
         return evidence
 
     def _revision_type(self, *, affected_fields: list[str], budget_policy: str | None) -> str:
+        if "destination" in affected_fields:
+            return "destination_update"
         if "budget" in affected_fields:
             return "budget_optimization" if budget_policy == "target_near" else "budget_update"
         if "excluded_attractions" in affected_fields:

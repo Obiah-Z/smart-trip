@@ -164,6 +164,63 @@ def test_plan_api_followup_budget_update_reuses_session() -> None:
     assert payload["task_profile"]["task_type"] == "travel_planning"
 
 
+def test_plan_api_followup_destination_update_replans_with_existing_days() -> None:
+    client = TestClient(app)
+
+    first_payload = post_plan(
+        client,
+        user_id="smoke-followup-destination-user",
+        message="帮我规划一个杭州三日游，预算3000，节奏轻松一点，酒店尽量安静",
+    )
+    payload = post_plan(
+        client,
+        user_id="smoke-followup-destination-user",
+        session_id=first_payload["session_id"],
+        message="帮我把目的地换到上海",
+    )
+
+    trace_nodes = [
+        item["node"]
+        for item in payload["assembled_context"]["runtime_context"]["workflow_trace"]
+    ]
+
+    assert payload["session_id"] == first_payload["session_id"]
+    assert payload["session_context"]["session_found"] is True
+    assert payload["structured_constraints"]["destination"] == "上海"
+    assert payload["structured_constraints"]["days"] == 3
+    assert payload["structured_constraints"]["budget"] == 3000
+    assert payload["structured_constraints"]["_followup_replan"] is True
+    assert payload["structured_constraints"]["revision_intent"]["revision_type"] == "destination_update"
+    assert payload["task_profile"]["task_type"] == "travel_planning"
+    assert payload["final_plan"]["summary"]["destinationCity"] == "上海"
+    assert payload["final_plan"]["summary"]["days"] == 3
+    assert "run_agents" in trace_nodes
+    assert "build_consulting_response" not in trace_nodes
+    assert "没有匹配到可直接执行的轻量能力" not in payload["llm_output"]["llm_summary"]
+
+
+def test_plan_api_destination_update_can_attach_latest_planning_session_without_session_id() -> None:
+    client = TestClient(app)
+
+    first_payload = post_plan(
+        client,
+        user_id="smoke-implicit-destination-user",
+        message="帮我规划一个杭州三日游，预算3000，节奏轻松一点，酒店尽量安静",
+    )
+    payload = post_plan(
+        client,
+        user_id="smoke-implicit-destination-user",
+        message="把目的地换成上海",
+    )
+
+    assert payload["session_id"] == first_payload["session_id"]
+    assert payload["session_context"]["session_found"] is True
+    assert payload["structured_constraints"]["destination"] == "上海"
+    assert payload["structured_constraints"]["days"] == 3
+    assert payload["structured_constraints"]["_followup_replan"] is True
+    assert payload["task_profile"]["task_type"] == "travel_planning"
+
+
 def test_plan_api_followup_excluded_spot_replans_without_reasking_days() -> None:
     client = TestClient(app)
 

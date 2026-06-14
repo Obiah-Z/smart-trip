@@ -40,6 +40,7 @@ class PlannerService:
         "更舒适",
         "舒适度",
     )
+    DESTINATION_UPDATE_KEYWORDS = ("目的地", "城市", "换到", "换成", "换为", "改到", "改成", "改为", "调整到", "调整成", "改去", "换去")
     EXCLUSION_UPDATE_KEYWORDS = ("不想去", "不要去", "不去", "别去", "避开", "去掉", "删掉", "移除")
     PREFERENCE_UPDATE_KEYWORDS = (
         "想吃",
@@ -159,8 +160,12 @@ class PlannerService:
         if is_followup_update:
             base_preferences = list(latest_constraints.get("preferences") or baseline_constraints.get("preferences") or [])
             merged_preferences = self._merge_preferences(base_preferences=base_preferences, new_preferences=slots.preferences)
+            is_destination_update = self._is_destination_update(slots=slots, latest_constraints=latest_constraints)
+            base_excluded_attractions = [] if is_destination_update else (
+                latest_constraints.get("excluded_attractions") or baseline_constraints.get("excluded_attractions") or []
+            )
             merged_excluded_attractions = self._merge_excluded_attractions(
-                base_attractions=latest_constraints.get("excluded_attractions") or baseline_constraints.get("excluded_attractions") or [],
+                base_attractions=base_excluded_attractions,
                 new_attractions=slots.excluded_attractions,
             )
             resolved_budget = self._resolve_followup_budget(
@@ -358,7 +363,11 @@ class PlannerService:
         latest_constraints = candidate_context.get("latest_structured_constraints") or {}
         if not latest_constraints.get("destination"):
             return None
-        if getattr(slots, "destination_explicit", False) and slots.destination != latest_constraints.get("destination"):
+        if (
+            getattr(slots, "destination_explicit", False)
+            and slots.destination != latest_constraints.get("destination")
+            and not self._revision_intent_resolver.has_destination_update_signal(message=message, slots=slots)
+        ):
             return None
         revision_intent = self._revision_intent_resolver.analyze(
             message=message,
@@ -370,11 +379,16 @@ class PlannerService:
         return candidate_session_id
 
     def _looks_like_followup_without_session(self, *, message: str, slots) -> bool:
-        return self._revision_intent_resolver.has_revision_signal(message=message, slots=slots)
+        return (
+            self._revision_intent_resolver.has_revision_signal(message=message, slots=slots)
+            or self._revision_intent_resolver.has_destination_update_signal(message=message, slots=slots)
+        )
 
     def _has_followup_update_signal(self, *, message: str, slots) -> bool:
         """覆盖常见中文追问表达，降低“同义表达未命中导致走轻咨询”的概率。"""
         if self._revision_intent_resolver.has_revision_signal(message=message, slots=slots):
+            return True
+        if self._revision_intent_resolver.has_destination_update_signal(message=message, slots=slots):
             return True
         if any(keyword in message for keyword in self.EXCLUSION_UPDATE_KEYWORDS):
             return True
@@ -389,6 +403,15 @@ class PlannerService:
         if slots.preferences and any(token in message for token in self.PREFERENCE_UPDATE_KEYWORDS):
             return True
         return any(token in message for token in ("住宿", "酒店", "舒适", "舒服", "安静", "热闹"))
+
+    def _is_destination_update(self, *, slots, latest_constraints: dict[str, Any]) -> bool:
+        """判断本轮是否明确把既有规划切换到另一个目的地。"""
+        return bool(
+            getattr(slots, "destination_explicit", False)
+            and slots.destination
+            and latest_constraints.get("destination")
+            and slots.destination != latest_constraints.get("destination")
+        )
 
     def _normalize_followup_message(self, message: str) -> str:
         """把“不想逛/不要去逛”等表达归一成排除类信号。"""
