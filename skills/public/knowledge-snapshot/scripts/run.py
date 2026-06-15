@@ -1,3 +1,11 @@
+"""Knowledge Snapshot Skill 沙箱执行脚本。
+
+这是开发调试类 Skill，用于返回知识桥接/MCP-style 能力快照：
+- 输入通过 --payload-json 传入。
+- 输出通过 stdout JSON 返回。
+- 不暴露密钥、环境变量或真实外部服务细节，避免进入用户视图。
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -33,6 +41,7 @@ def main() -> None:
 
     payload = json.loads(args.payload_json)
     result = build_snapshot_response(payload=payload)
+    # 主进程会 json.loads(stdout)，所以 stdout 中只能出现 JSON 结果。
     print(json.dumps(result, ensure_ascii=False))
 
 

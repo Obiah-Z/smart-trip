@@ -1,3 +1,12 @@
+"""Attraction Search Skill 沙箱执行脚本。
+
+该文件不是被主服务直接 import 调用的普通业务模块，而是由
+SkillSandboxRunner 以独立子进程执行：
+- 输入：通过命令行参数 --payload-json 接收 JSON payload。
+- 输出：只能向 stdout 打印一个 JSON 对象，沙箱会读取 stdout 并 json.loads。
+- 错误：抛异常或非 0 退出码会被沙箱收敛成 Skill 执行失败。
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -109,6 +118,7 @@ def main() -> None:
     payload = json.loads(args.payload_json)
     data = load_travel_data()
     result = build_attraction_response(data=data, payload=payload)
+    # 沙箱执行器只读取 stdout；这里的 print 就是 Skill 的跨进程返回值。
     print(json.dumps(result, ensure_ascii=False))
 
 

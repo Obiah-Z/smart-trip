@@ -1,3 +1,11 @@
+"""Budget Optimize Skill 沙箱执行脚本。
+
+该文件遵循统一 Skill 脚本协议，由 SkillSandboxRunner 以独立子进程运行：
+- 输入：--payload-json 传入结构化 payload。
+- 输出：stdout 打印 JSON，主进程通过 json.loads(stdout) 取回 output。
+- 约束：不要在这里直接读写业务状态，跨模块状态由上游 payload 显式传入。
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -245,6 +253,7 @@ def main() -> None:
 
     payload = json.loads(args.payload_json)
     result = build_budget_response(payload=payload)
+    # stdout 是 Skill 与主服务之间的返回通道，必须保持为可解析 JSON。
     print(json.dumps(result, ensure_ascii=False))
 
 

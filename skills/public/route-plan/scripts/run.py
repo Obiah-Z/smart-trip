@@ -1,3 +1,11 @@
+"""Route Plan Skill 沙箱执行脚本。
+
+该文件是 route.plan 的跨进程执行入口，不是主服务直接调用的函数模块：
+- 输入：SkillSandboxRunner 通过 --payload-json 注入目的地、天数、候选景点等参数。
+- 输出：脚本将结果 JSON 打印到 stdout，沙箱解析后包装为 tool_result["output"]。
+- 安全：网络、子进程、写入目录和资源限制由 sandbox_policy 控制。
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -93,6 +101,7 @@ def main() -> None:
 
     payload = json.loads(args.payload_json)
     result = build_route_response(payload=payload)
+    # stdout 是沙箱协议的唯一成功返回通道，不能混入额外说明文本。
     print(json.dumps(result, ensure_ascii=False))
 
 

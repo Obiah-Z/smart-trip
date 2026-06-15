@@ -1,3 +1,11 @@
+"""Weather Lookup Skill 沙箱执行脚本。
+
+该脚本由 SkillSandboxRunner 在独立子进程中运行：
+- 输入：--payload-json，其中至少包含 destination。
+- 输出：stdout 打印天气查询 JSON，供轻咨询和完整规划链路复用。
+- 失败：异常、非法 JSON 输出或非 0 退出码会被 ToolService 收敛为工具失败。
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -81,6 +89,7 @@ def main() -> None:
 
     data = load_travel_data()
     result = build_weather_response(data=data, destination=destination)
+    # 沙箱执行器会把 stdout 解析为 Skill output，不能在这里打印调试文本。
     print(json.dumps(result, ensure_ascii=False))
 
 

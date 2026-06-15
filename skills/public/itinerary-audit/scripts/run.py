@@ -1,3 +1,11 @@
+"""Itinerary Audit Skill 沙箱执行脚本。
+
+该脚本用于在受限子进程中执行确定性行程审计：
+- 输入：--payload-json 传入路线、预算、住宿、天气等上游结果。
+- 输出：stdout 打印审计 JSON，供 ToolService 和 Agent 链路继续消费。
+- 注意：stdout 不应混入调试文本，否则主进程 json.loads 会失败。
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -258,6 +266,7 @@ def main() -> None:
 
     payload = json.loads(args.payload_json)
     result = build_audit_response(payload=payload)
+    # 沙箱只把 stdout 当作结构化结果读取，因此这里必须输出单个 JSON 对象。
     print(json.dumps(result, ensure_ascii=False))
 
 

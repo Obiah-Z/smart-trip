@@ -1,3 +1,11 @@
+"""Hotel Search Skill 沙箱执行脚本。
+
+该脚本由 SkillSandboxRunner 作为独立子进程调用，而不是由主进程直接 import：
+- 输入来自 --payload-json。
+- 输出必须是 stdout 中的一段 JSON。
+- stderr、异常或非 0 exit code 会被主服务视为 Skill 执行失败。
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -86,6 +94,7 @@ def main() -> None:
     payload = json.loads(args.payload_json)
     data = load_travel_data()
     result = build_hotel_response(data=data, payload=payload)
+    # 这里的 print 是沙箱协议的返回值，不是普通调试日志。
     print(json.dumps(result, ensure_ascii=False))
 
 
