@@ -133,6 +133,68 @@ def test_executor_agent_builds_final_plan_from_tool_results() -> None:
     assert result.payload["weather"][0]["summary"] == "多云 22-28℃"
 
 
+def test_executor_agent_prefers_affordable_upgraded_hotel_for_target_budget() -> None:
+    constraints = {
+        "destination": "杭州",
+        "days": 3,
+        "budget": 3000,
+        "pace": "balanced",
+        "preferences": ["quiet_hotel"],
+        "budget_policy": "target_near",
+        "target_budget": 5000,
+    }
+    tool_results = [
+        {
+            "tool_name": "route.plan",
+            "provider": "mock",
+            "output": {"days": [{"day": 1, "activities": ["西湖"]}, {"day": 2, "activities": ["灵隐寺"]}]},
+        },
+        {
+            "tool_name": "hotel.search",
+            "provider": "mock",
+            "output": {
+                "nightly_budget": 800,
+                "hotels": [
+                    {
+                        "name": "杭州基础酒店",
+                        "area": "武林",
+                        "pricePerNight": 500,
+                        "quiet": True,
+                        "tags": ["quiet_hotel"],
+                        "rating": 4.4,
+                    },
+                    {
+                        "name": "杭州舒适升级酒店",
+                        "area": "西湖",
+                        "pricePerNight": 1200,
+                        "quiet": True,
+                        "tags": ["quiet_hotel", "comfortable_hotel"],
+                        "rating": 4.9,
+                        "comfortScore": 9.8,
+                    },
+                ],
+            },
+        },
+        {
+            "tool_name": "attraction.search",
+            "provider": "mock",
+            "output": {"attractions": [{"name": "西湖", "type": "nature", "cost": 0, "durationHours": 2}]},
+        },
+    ]
+
+    result = ExecutorAgent().run(
+        constraints=constraints,
+        tool_results=tool_results,
+        planner_payload={"task_breakdown": []},
+        retrieval_context={"retrieved_documents": [], "injected_knowledge": []},
+    )
+
+    assert result.payload["summary"]["totalBudget"] == 5000
+    assert result.payload["hotelOptions"][0]["name"] == "杭州舒适升级酒店"
+    assert result.payload["budget"]["experience"] > 0
+    assert result.payload["stayAdvice"]["recommendedHotel"] == "杭州舒适升级酒店"
+
+
 def test_reviewer_agent_uses_audit_result_when_available() -> None:
     result = ReviewerAgent().run(
         constraints={"budget": 3000, "pace": "relaxed", "days": 3},
@@ -162,3 +224,21 @@ def test_reviewer_agent_uses_audit_result_when_available() -> None:
     assert result.payload["final_status"] == "approved"
     assert result.payload["weather_summary"] == "多云"
     assert result.payload["recommendations"] == ["保持当前安排"]
+
+
+def test_reviewer_agent_falls_back_without_audit_result() -> None:
+    result = ReviewerAgent().run(
+        constraints={"budget": 3000, "pace": "balanced", "days": 3},
+        executor_payload={"summary": {"totalBudget": 2800}},
+        tool_results=[{"tool_name": "weather.lookup", "output": {"summary": "晴"}}],
+    )
+
+    assert result.name == "reviewer_agent"
+    assert result.payload["final_status"] == "approved"
+    assert result.payload["within_budget"] is True
+    assert result.payload["pace_aligned"] is True
+    assert result.payload["validation_checks"] == [
+        {"name": "budget_guardrail", "passed": True},
+        {"name": "pace_alignment", "passed": True},
+        {"name": "weather_context_available", "passed": True},
+    ]
