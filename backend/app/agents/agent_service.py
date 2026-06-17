@@ -12,7 +12,7 @@ from app.agents.reviewer_agent import ReviewerAgent
 class AgentService:
     """多 Agent 协作的组合门面。
 
-    具体职责已经拆到独立 Agent 类中；这里只保留统一调用入口和旧版 run() 兼容层。
+    具体职责已经拆到独立 Agent 类中；这里只保留四个 Agent 实例和独立调用入口。
     LangGraph 节点会分别调用 run_planner/run_retriever/run_executor/run_reviewer。
     """
 
@@ -21,35 +21,6 @@ class AgentService:
         self._retriever_agent = RetrieverAgent()
         self._executor_agent = ExecutorAgent()
         self._reviewer_agent = ReviewerAgent()
-
-    def run(
-        self,
-        *,
-        constraints: dict[str, Any],
-        retrieval_context: dict[str, Any],
-        tool_results: list[dict[str, Any]],
-        memory_context: dict[str, Any],
-        task_profile: dict[str, Any],
-    ) -> list[AgentExecutionResult]:
-        """兼容旧入口：按固定顺序执行四个独立 Agent。"""
-        planner_result = self.run_planner(
-            constraints=constraints,
-            memory_context=memory_context,
-            task_profile=task_profile,
-        )
-        retriever_result = self.run_retriever(retrieval_context=retrieval_context, tool_results=tool_results)
-        executor_result = self.run_executor(
-            constraints=constraints,
-            tool_results=tool_results,
-            planner_payload=planner_result.payload,
-            retrieval_context=retrieval_context,
-        )
-        reviewer_result = self.run_reviewer(
-            constraints=constraints,
-            executor_payload=executor_result.payload,
-            tool_results=tool_results,
-        )
-        return [planner_result, retriever_result, executor_result, reviewer_result]
 
     def run_planner(
         self,

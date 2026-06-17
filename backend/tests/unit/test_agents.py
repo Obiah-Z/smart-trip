@@ -1,4 +1,3 @@
-from app.agents.agent_service import AgentService
 from app.agents.executor_agent import ExecutorAgent
 from app.agents.planner_agent import PlannerAgent
 from app.agents.retriever_agent import RetrieverAgent
@@ -163,30 +162,3 @@ def test_reviewer_agent_uses_audit_result_when_available() -> None:
     assert result.payload["final_status"] == "approved"
     assert result.payload["weather_summary"] == "多云"
     assert result.payload["recommendations"] == ["保持当前安排"]
-
-
-def test_agent_service_keeps_composed_execution_order() -> None:
-    service = AgentService()
-    results = service.run(
-        constraints={
-            "destination": "杭州",
-            "days": 2,
-            "budget": 0,
-            "pace": "balanced",
-            "preferences": [],
-            "budget_policy": None,
-            "target_budget": None,
-        },
-        retrieval_context={"retrieved_documents": [], "injected_knowledge": []},
-        tool_results=[],
-        memory_context={"relevant_long_term_memory": []},
-        task_profile={"task_type": "travel_planning", "needs_multi_agent": True},
-    )
-
-    assert [item.name for item in results] == [
-        "planner_agent",
-        "retriever_agent",
-        "executor_agent",
-        "reviewer_agent",
-    ]
-    assert results[2].payload["summary"]["destinationCity"] == "杭州"
