@@ -62,7 +62,10 @@ def test_plan_api_generates_core_itinerary_pipeline() -> None:
         "retrieve_knowledge",
         "run_skills",
         "assemble_context",
-        "run_agents",
+        "planner_agent",
+        "retriever_agent",
+        "executor_agent",
+        "reviewer_agent",
         "review_plan",
         "enrich_and_summarize",
         "persist_planning_response",
@@ -194,7 +197,10 @@ def test_plan_api_followup_destination_update_replans_with_existing_days() -> No
     assert payload["task_profile"]["task_type"] == "travel_planning"
     assert payload["final_plan"]["summary"]["destinationCity"] == "上海"
     assert payload["final_plan"]["summary"]["days"] == 3
-    assert "run_agents" in trace_nodes
+    assert "planner_agent" in trace_nodes
+    assert "retriever_agent" in trace_nodes
+    assert "executor_agent" in trace_nodes
+    assert "reviewer_agent" in trace_nodes
     assert "build_consulting_response" not in trace_nodes
     assert "没有匹配到可直接执行的轻量能力" not in payload["llm_output"]["llm_summary"]
 

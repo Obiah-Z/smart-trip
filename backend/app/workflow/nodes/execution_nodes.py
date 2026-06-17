@@ -73,29 +73,6 @@ class ExecutionNodes:
             ),
         }
 
-    def run_agents(self, state: TripPlanningState) -> dict[str, Any]:
-        """执行多 Agent 协作，并把 executor_agent 的 payload 作为候选最终方案。"""
-        service = self._planner_service
-        agent_outputs = service._agent_service.run(
-            constraints=state["structured_constraints"],
-            retrieval_context=state["retrieval_context"],
-            tool_results=state["tool_results"],
-            memory_context=state["memory_context"],
-            task_profile=state["task_profile"],
-        )
-        final_plan = next(item.payload for item in agent_outputs if item.name == "executor_agent")
-        return {
-            "agent_outputs": agent_outputs,
-            "final_plan": final_plan,
-            "workflow_trace": append_trace(
-                state,
-                node="run_agents",
-                status="done",
-                summary="完成 planner/retriever/executor/reviewer 多 Agent 协作。",
-                metadata={"agents": [item.name for item in agent_outputs]},
-            ),
-        }
-
     def review_plan(self, state: TripPlanningState) -> dict[str, Any]:
         """检查最终方案是否违反硬约束，例如排除景点仍被安排进路线。"""
         review = self._reviewer.build_review(

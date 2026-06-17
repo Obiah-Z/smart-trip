@@ -382,7 +382,10 @@ function formatWorkflowNodeLabel(value) {
     run_skills: 'Run Skills',
     build_consulting_response: 'Consulting Response',
     assemble_context: 'Assemble Context',
-    run_agents: 'Run Agents',
+    planner_agent: 'Planner Agent',
+    retriever_agent: 'Retriever Agent',
+    executor_agent: 'Executor Agent',
+    reviewer_agent: 'Reviewer Agent',
     enrich_and_summarize: 'Enrich & Summarize',
     persist_planning_response: 'Persist Response',
   }

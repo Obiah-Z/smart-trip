@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from langgraph.graph import END, START, StateGraph
 
-from app.workflow.nodes import ContextNodes, ExecutionNodes, InputNodes, ResponseNodes
+from app.workflow.nodes import AgentNodes, ContextNodes, ExecutionNodes, InputNodes, ResponseNodes
 from app.workflow.reviewer import PlanReviewer
 from app.workflow.state import TripPlanningState
 
@@ -23,6 +23,7 @@ class TripPlanningWorkflow:
         self._input_nodes = InputNodes(planner_service)
         self._context_nodes = ContextNodes(planner_service)
         self._execution_nodes = ExecutionNodes(planner_service, self._reviewer)
+        self._agent_nodes = AgentNodes(planner_service)
         self._response_nodes = ResponseNodes(planner_service)
         self._graph = self._build_graph()
 
@@ -43,7 +44,8 @@ class TripPlanningWorkflow:
 
         主路径：
         prepare_request -> resolve_constraints -> load_memory -> retrieve_knowledge ->
-        run_skills -> assemble_context -> run_agents -> review_plan ->
+        run_skills -> assemble_context -> planner_agent -> retriever_agent ->
+        executor_agent -> reviewer_agent -> review_plan ->
         enrich_and_summarize -> persist_planning_response。
 
         特殊路径：
@@ -60,7 +62,10 @@ class TripPlanningWorkflow:
         graph.add_node("run_skills", self._execution_nodes.run_skills)
         graph.add_node("build_consulting_response", self._response_nodes.build_consulting_response)
         graph.add_node("assemble_context", self._context_nodes.assemble_context)
-        graph.add_node("run_agents", self._execution_nodes.run_agents)
+        graph.add_node("planner_agent", self._agent_nodes.run_planner_agent)
+        graph.add_node("retriever_agent", self._agent_nodes.run_retriever_agent)
+        graph.add_node("executor_agent", self._agent_nodes.run_executor_agent)
+        graph.add_node("reviewer_agent", self._agent_nodes.run_reviewer_agent)
         graph.add_node("review_plan", self._execution_nodes.review_plan)
         graph.add_node("repair_plan", self._execution_nodes.repair_plan)
         graph.add_node("enrich_and_summarize", self._response_nodes.enrich_and_summarize)
@@ -88,8 +93,11 @@ class TripPlanningWorkflow:
             },
         )
         graph.add_edge("build_consulting_response", END)
-        graph.add_edge("assemble_context", "run_agents")
-        graph.add_edge("run_agents", "review_plan")
+        graph.add_edge("assemble_context", "planner_agent")
+        graph.add_edge("planner_agent", "retriever_agent")
+        graph.add_edge("retriever_agent", "executor_agent")
+        graph.add_edge("executor_agent", "reviewer_agent")
+        graph.add_edge("reviewer_agent", "review_plan")
         graph.add_conditional_edges(
             "review_plan",
             self._route_after_review,

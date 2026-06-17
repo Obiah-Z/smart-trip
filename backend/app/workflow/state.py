@@ -32,6 +32,10 @@ class TripPlanningState(TypedDict, total=False):
     tool_results: list[dict[str, Any]]
     assembled_context: dict[str, Any]
     agent_outputs: list[Any]
+    planner_agent_output: Any
+    retriever_agent_output: Any
+    executor_agent_output: Any
+    reviewer_agent_output: Any
     final_plan: dict[str, Any]
     plan_review: dict[str, Any]
     llm_output: dict[str, Any]
