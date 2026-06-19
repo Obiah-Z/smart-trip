@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from app.db import sqlite as sqlite_store
-from app.db.repositories import MemoryRepository, SessionRunRepository
+from app.core.db import sqlite as sqlite_store
+from app.core.db.repositories import MemoryRepository, SessionRunRepository
 
 
 def test_init_db_migrates_existing_json_snapshots_to_sqlite(tmp_path, monkeypatch) -> None:

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.rag.corpus_builder import build_manifest
+from app.knowledge.rag.corpus_builder import build_manifest
 from scripts.build_rag_markdown_corpus import build_markdown_corpus
 
 

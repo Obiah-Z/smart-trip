@@ -12,9 +12,9 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.config.settings import load_settings
-from app.image_generation.client import ImageGenerationError
-from app.image_generation.service import ImageGenerationService
+from app.core.config.settings import load_settings
+from app.capabilities.image_generation.client import ImageGenerationError
+from app.capabilities.image_generation.service import ImageGenerationService
 
 
 DEFAULT_TASKS_FILE = BACKEND_ROOT / "data" / "generated_images" / "tasks" / "full_trip_visual_tasks.json"

@@ -1,7 +1,7 @@
-from app.config.settings import Settings
-from app.llm.openai_client import OpenAIPlannerClient
-from app.skills.skill_registry import SkillRegistry
-from app.skills.skill_selection_service import SkillSelectionService
+from app.core.config.settings import Settings
+from app.capabilities.llm.openai_client import OpenAIPlannerClient
+from app.capabilities.skills.skill_registry import SkillRegistry
+from app.capabilities.skills.skill_selection_service import SkillSelectionService
 
 
 def test_skill_selection_service_uses_heuristics_for_itinerary_request() -> None:

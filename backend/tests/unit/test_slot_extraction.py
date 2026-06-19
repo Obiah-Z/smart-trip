@@ -1,4 +1,4 @@
-from app.planning.slot_extractor import SlotExtractor
+from app.orchestration.planning.slot_extractor import SlotExtractor
 
 
 def test_extracts_trip_constraints() -> None:

@@ -1,8 +1,8 @@
 import pytest
 
-from app.skills.skill_registry import SkillRegistry
-from app.skills.skill_script_runner import SkillScriptRunner
-from app.skills.tool_service import ToolService
+from app.capabilities.skills.skill_registry import SkillRegistry
+from app.capabilities.skills.skill_script_runner import SkillScriptRunner
+from app.capabilities.skills.tool_service import ToolService
 
 
 def test_tool_service_returns_weather_and_hotels() -> None:

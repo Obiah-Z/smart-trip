@@ -10,8 +10,8 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.config.settings import load_settings
-from app.image_generation.audit import (
+from app.core.config.settings import load_settings
+from app.capabilities.image_generation.audit import (
     audit_trip_visual_assets,
     default_quarantine_dir,
     load_manifest,

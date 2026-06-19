@@ -10,26 +10,26 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.agents.agent_service import AgentService
-from app.config.settings import load_settings
-from app.context.context_assembler import ContextAssembler
-from app.context.session_context_service import SessionContextService
-from app.image_generation.service import ImageGenerationService
-from app.integrations.amap_geo_service import AmapGeoService
-from app.llm.openai_client import OpenAIPlannerClient
-from app.memory.memory_injection_service import MemoryInjectionService
-from app.memory.memory_service import MemoryService
-from app.planning.planner_service import PlannerService
-from app.planning.slot_extractor import SlotExtractor
-from app.planning.task_router import TaskRouter
-from app.presentation.geo_service import GeoPresentationService
-from app.retrieval.retrieval_service import RetrievalService
-from app.skills.skill_registry import SkillRegistry
-from app.skills.skill_script_runner import SkillScriptRunner
-from app.skills.skill_selection_service import SkillSelectionService
-from app.skills.tool_service import ToolService
-from app.db.repositories import MemoryRepository, SessionRunRepository
-from app.db.sqlite import MEMORY_PATH, SESSION_RUNS_PATH, get_connection, init_db, save_json_records, sqlite_available
+from app.orchestration.agents.agent_service import AgentService
+from app.core.config.settings import load_settings
+from app.orchestration.context.context_assembler import ContextAssembler
+from app.orchestration.context.session_context_service import SessionContextService
+from app.capabilities.image_generation.service import ImageGenerationService
+from app.capabilities.integrations.amap_geo_service import AmapGeoService
+from app.capabilities.llm.openai_client import OpenAIPlannerClient
+from app.orchestration.memory.memory_injection_service import MemoryInjectionService
+from app.orchestration.memory.memory_service import MemoryService
+from app.orchestration.planning.planner_service import PlannerService
+from app.orchestration.planning.slot_extractor import SlotExtractor
+from app.orchestration.planning.task_router import TaskRouter
+from app.capabilities.presentation.geo_service import GeoPresentationService
+from app.knowledge.retrieval.retrieval_service import RetrievalService
+from app.capabilities.skills.skill_registry import SkillRegistry
+from app.capabilities.skills.skill_script_runner import SkillScriptRunner
+from app.capabilities.skills.skill_selection_service import SkillSelectionService
+from app.capabilities.skills.tool_service import ToolService
+from app.core.db.repositories import MemoryRepository, SessionRunRepository
+from app.core.db.sqlite import MEMORY_PATH, SESSION_RUNS_PATH, get_connection, init_db, save_json_records, sqlite_available
 
 
 @dataclass(frozen=True)

@@ -1,5 +1,5 @@
-from app.config.settings import Settings
-from app.llm.openai_client import OpenAIPlannerClient
+from app.core.config.settings import Settings
+from app.capabilities.llm.openai_client import OpenAIPlannerClient
 
 
 def test_extract_message_returns_empty_string_for_empty_choices() -> None:

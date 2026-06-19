@@ -11,9 +11,9 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.config.settings import load_settings
-from app.image_generation.asset_utils import normalize_manifest_record
-from app.image_generation.thumbnails import (
+from app.core.config.settings import load_settings
+from app.capabilities.image_generation.asset_utils import normalize_manifest_record
+from app.capabilities.image_generation.thumbnails import (
     DEFAULT_THUMBNAIL_WIDTHS,
     generate_thumbnails_for_image,
     record_with_thumbnail_fields,

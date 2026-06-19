@@ -1,5 +1,5 @@
-from app.config.settings import Settings
-from app.rag.embedding_client import OpenAIEmbeddingClient
+from app.core.config.settings import Settings
+from app.knowledge.rag.embedding_client import OpenAIEmbeddingClient
 
 
 def test_parse_embeddings_response_sorts_by_index_and_normalizes_vectors() -> None:

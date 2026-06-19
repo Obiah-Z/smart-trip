@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
 
-from app.config.settings import Settings
-from app.rag.corpus_builder import build_manifest, write_corpus_and_index
-from app.rag.embedding_client import OpenAIEmbeddingClient
-from app.rag.retriever import LocalRAGRetriever
+from app.core.config.settings import Settings
+from app.knowledge.rag.corpus_builder import build_manifest, write_corpus_and_index
+from app.knowledge.rag.embedding_client import OpenAIEmbeddingClient
+from app.knowledge.rag.retriever import LocalRAGRetriever
 from scripts.build_rag_markdown_corpus import build_markdown_corpus
 
 

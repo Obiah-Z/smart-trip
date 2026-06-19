@@ -10,7 +10,7 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.image_generation.task_builder import TripVisualTaskBuilder
+from app.capabilities.image_generation.task_builder import TripVisualTaskBuilder
 
 
 DEFAULT_OUTPUT_PATH = BACKEND_ROOT / "data" / "generated_images" / "tasks" / "full_trip_visual_tasks.json"

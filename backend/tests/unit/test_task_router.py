@@ -1,4 +1,4 @@
-from app.planning.task_router import TaskRouter
+from app.orchestration.planning.task_router import TaskRouter
 
 
 def test_task_router_marks_complex_itinerary_request() -> None:

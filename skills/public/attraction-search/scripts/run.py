@@ -13,7 +13,7 @@ import argparse
 import json
 from typing import Any
 
-from app.mock.travel_engine import load_travel_data, select_attractions
+from app.capabilities.mock.travel_engine import load_travel_data, select_attractions
 
 
 VALID_PACES = {"relaxed", "balanced", "intensive"}

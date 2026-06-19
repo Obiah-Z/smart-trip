@@ -2,11 +2,11 @@ import json
 
 import pytest
 
-from app.db import repositories as repository_module
-from app.db import sqlite as sqlite_store
-from app.db.repositories import MemoryRepository
-from app.db.sqlite import init_db
-from app.memory.memory_service import MemoryService
+from app.core.db import repositories as repository_module
+from app.core.db import sqlite as sqlite_store
+from app.core.db.repositories import MemoryRepository
+from app.core.db.sqlite import init_db
+from app.orchestration.memory.memory_service import MemoryService
 
 
 @pytest.fixture(autouse=True)

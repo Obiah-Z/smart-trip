@@ -12,7 +12,7 @@ import argparse
 import json
 from typing import Any
 
-from app.mock.travel_engine import load_travel_data, select_hotels
+from app.capabilities.mock.travel_engine import load_travel_data, select_hotels
 
 
 def build_hotel_response(*, data: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:

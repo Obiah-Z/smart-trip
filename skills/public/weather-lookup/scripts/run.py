@@ -12,7 +12,7 @@ import argparse
 import json
 from typing import Any
 
-from app.mock.travel_engine import load_travel_data, weather_lookup
+from app.capabilities.mock.travel_engine import load_travel_data, weather_lookup
 
 
 def build_weather_response(*, data: dict[str, Any], destination: str) -> dict[str, Any]:

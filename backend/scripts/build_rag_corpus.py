@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from app.config.settings import load_settings
-from app.rag.corpus_builder import build_manifest, write_corpus_and_index
-from app.rag.embedding_client import OpenAIEmbeddingClient
-from app.rag.vector_index import VectorIndexBuilder
+from app.core.config.settings import load_settings
+from app.knowledge.rag.corpus_builder import build_manifest, write_corpus_and_index
+from app.knowledge.rag.embedding_client import OpenAIEmbeddingClient
+from app.knowledge.rag.vector_index import VectorIndexBuilder
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]

@@ -1,4 +1,4 @@
-from app.presentation.geo_service import GeoPresentationService
+from app.capabilities.presentation.geo_service import GeoPresentationService
 
 
 class _FakeRoute:

@@ -1,4 +1,4 @@
-from app.retrieval.query_rewrite import RuleBasedQueryRewriteService
+from app.knowledge.retrieval.query_rewrite import RuleBasedQueryRewriteService
 
 
 def test_query_rewrite_keeps_destination_and_trip_terms() -> None:

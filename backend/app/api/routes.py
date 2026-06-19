@@ -4,9 +4,9 @@ from copy import deepcopy
 
 from fastapi import APIRouter, HTTPException
 
-from app.db.sqlite import get_storage_status
-from app.image_generation.client import ImageGenerationError
-from app.models.schemas import (
+from app.core.db.sqlite import get_storage_status
+from app.capabilities.image_generation.client import ImageGenerationError
+from app.core.models.schemas import (
     AttractionImageGenerateRequest,
     AttractionImageGenerateResponse,
     DemoPlanRequest,

@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from app.graph.loader import ObsidianGraphLoader
-from app.graph.service import GraphExpansionService
+from app.knowledge.graph.loader import ObsidianGraphLoader
+from app.knowledge.graph.service import GraphExpansionService
 
 
 def test_obsidian_graph_loader_parses_frontmatter_and_wikilinks(tmp_path: Path) -> None:

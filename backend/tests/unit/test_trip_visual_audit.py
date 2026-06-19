@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from app.image_generation.audit import (
+from app.capabilities.image_generation.audit import (
     audit_trip_visual_assets,
     move_relative_files,
     prune_unexpected_manifest_records,
 )
-from app.image_generation.asset_utils import normalize_manifest_record
+from app.capabilities.image_generation.asset_utils import normalize_manifest_record
 
 
 def _write_image(path: Path) -> None:

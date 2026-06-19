@@ -5,8 +5,8 @@ from fastapi.testclient import TestClient
 
 os.environ["OPENAI_MODE"] = "mock"
 
-from app.db import repositories as repository_module
-from app.db import sqlite as sqlite_store
+from app.core.db import repositories as repository_module
+from app.core.db import sqlite as sqlite_store
 from app.main import app
 
 
@@ -1065,7 +1065,7 @@ def test_demo_session_open_hydrates_legacy_map_visual_for_shanghai_consulting() 
     session_id = payload["session_id"]
     assert session_id
 
-    from app.db.repositories import SessionRunRepository
+    from app.core.db.repositories import SessionRunRepository
 
     run_repository = SessionRunRepository()
     runs = run_repository.list_session_runs(session_id=session_id)
@@ -1081,11 +1081,11 @@ def test_demo_session_open_hydrates_legacy_map_visual_for_shanghai_consulting() 
         if record["run_id"] == target_run_id:
             record["response"]["final_plan"].pop("visual", None)
 
-    from app.db.sqlite import SESSION_RUNS_PATH, save_json_records, sqlite_available
+    from app.core.db.sqlite import SESSION_RUNS_PATH, save_json_records, sqlite_available
     import json as _json
 
     if sqlite_available():
-        from app.db.sqlite import get_connection
+        from app.core.db.sqlite import get_connection
 
         with get_connection() as connection:
             connection.execute(

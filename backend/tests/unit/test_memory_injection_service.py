@@ -1,5 +1,5 @@
-from app.memory.memory_injection_service import MemoryInjectionService
-from app.memory.preference_profile import update_profile_value, signal_definition
+from app.orchestration.memory.memory_injection_service import MemoryInjectionService
+from app.orchestration.memory.preference_profile import update_profile_value, signal_definition
 
 
 def test_memory_injection_selects_relevant_hotel_and_food_preferences() -> None:

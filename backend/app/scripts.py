@@ -4,10 +4,10 @@ from pathlib import Path
 
 import httpx
 
-from app.config.settings import Settings
-from app.rag.corpus_builder import build_manifest, write_corpus_and_index
-from app.rag.embedding_client import OpenAIEmbeddingClient
-from app.rag.vector_index import VectorIndexBuilder
+from app.core.config.settings import Settings
+from app.knowledge.rag.corpus_builder import build_manifest, write_corpus_and_index
+from app.knowledge.rag.embedding_client import OpenAIEmbeddingClient
+from app.knowledge.rag.vector_index import VectorIndexBuilder
 
 
 def ensure_rag_ready(*, backend_root: Path, settings: Settings | None = None) -> None:

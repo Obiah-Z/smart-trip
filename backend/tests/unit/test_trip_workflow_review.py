@@ -1,4 +1,4 @@
-from app.workflow.reviewer import PlanReviewer
+from app.orchestration.workflow.reviewer import PlanReviewer
 
 
 def test_workflow_review_repairs_excluded_attraction_from_final_plan() -> None:

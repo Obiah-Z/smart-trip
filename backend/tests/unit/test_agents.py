@@ -1,7 +1,7 @@
-from app.agents.executor_agent import ExecutorAgent
-from app.agents.planner_agent import PlannerAgent
-from app.agents.retriever_agent import RetrieverAgent
-from app.agents.reviewer_agent import ReviewerAgent
+from app.orchestration.agents.executor_agent import ExecutorAgent
+from app.orchestration.agents.planner_agent import PlannerAgent
+from app.orchestration.agents.retriever_agent import RetrieverAgent
+from app.orchestration.agents.reviewer_agent import ReviewerAgent
 
 
 def test_planner_agent_builds_task_projection() -> None:

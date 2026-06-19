@@ -5,8 +5,8 @@ from fastapi.testclient import TestClient
 
 os.environ["OPENAI_MODE"] = "mock"
 
-from app.db import repositories as repository_module
-from app.db import sqlite as sqlite_store
+from app.core.db import repositories as repository_module
+from app.core.db import sqlite as sqlite_store
 from app.main import app
 
 

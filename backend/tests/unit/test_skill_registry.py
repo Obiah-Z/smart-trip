@@ -1,4 +1,4 @@
-from app.skills.skill_registry import SkillRegistry
+from app.capabilities.skills.skill_registry import SkillRegistry
 
 
 def test_skill_registry_lists_expected_skills() -> None:

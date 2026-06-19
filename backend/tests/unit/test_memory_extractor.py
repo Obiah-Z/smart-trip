@@ -1,5 +1,5 @@
-from app.memory.memory_extractor import MemoryExtractor
-from app.planning.slot_extractor import SlotExtractor
+from app.orchestration.memory.memory_extractor import MemoryExtractor
+from app.orchestration.planning.slot_extractor import SlotExtractor
 
 
 def test_memory_extractor_extracts_long_term_preferences_and_pace() -> None:

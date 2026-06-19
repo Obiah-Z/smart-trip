@@ -1,4 +1,4 @@
-from app.retrieval.retrieval_service import RetrievalService
+from app.knowledge.retrieval.retrieval_service import RetrievalService
 
 
 def test_retrieval_returns_city_documents() -> None:
