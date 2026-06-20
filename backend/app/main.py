@@ -14,9 +14,9 @@ from app.core.db.repositories import MemoryRepository, SessionRunRepository
 from app.core.db.sqlite import init_db
 from app.knowledge.graph import GraphExpansionService, GraphStore, ObsidianGraphLoader
 from app.capabilities.image_generation.service import ImageGenerationService
+from app.capabilities.image_generation.static_files import CachedStaticFiles
 from app.capabilities.integrations.amap_geo_service import AmapGeoService
 from app.capabilities.llm.openai_client import OpenAIPlannerClient
-from app.core.media.static_files import CachedStaticFiles
 from app.orchestration.memory.memory_extractor import MemoryExtractor
 from app.orchestration.memory.memory_injection_service import MemoryInjectionService
 from app.orchestration.memory.memory_service import MemoryService

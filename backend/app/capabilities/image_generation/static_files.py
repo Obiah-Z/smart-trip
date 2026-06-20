@@ -5,7 +5,7 @@ from starlette.responses import Response
 
 
 class CachedStaticFiles(StaticFiles):
-    """Static file server with browser cache headers for generated media."""
+    """Static file server with cache headers for generated image assets."""
 
     def __init__(
         self,

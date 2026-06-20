@@ -4,6 +4,10 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+"""Pydantic API schema。
+
+定义规划请求、响应、Skill、图片生成、会话历史等数据结构。
+"""
 
 class DemoPlanRequest(BaseModel):
     """旅行咨询/规划主接口请求。"""
