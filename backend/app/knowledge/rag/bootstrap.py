@@ -11,6 +11,7 @@ from app.knowledge.rag.vector_index import VectorIndexBuilder
 
 
 def ensure_rag_ready(*, backend_root: Path, settings: Settings | None = None) -> None:
+    """Ensure local RAG corpus, lexical index, and optional vector index exist."""
     raw_markdown_dir = backend_root / "data" / "rag" / "raw_markdown"
     corpus_dir = backend_root / "data" / "rag" / "corpus"
     index_dir = backend_root / "data" / "rag" / "index"

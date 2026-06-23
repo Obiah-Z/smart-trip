@@ -5,9 +5,9 @@ from typing import Any
 
 from app.core.config.settings import Settings
 from app.core.paths import backend_root
+from app.knowledge.rag.bootstrap import ensure_rag_ready
 from app.knowledge.rag.retriever import LocalRAGRetriever
 from app.knowledge.retrieval.query_rewrite import RuleBasedQueryRewriteService
-from app.scripts import ensure_rag_ready
 
 
 class RetrievalService:
